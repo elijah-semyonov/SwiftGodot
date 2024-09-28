@@ -29,10 +29,11 @@ public class ObjectCollection<Element: Object>: Collection, ExpressibleByArrayLi
     // that can take this existing reference, rather than calling the constructor that
     // makes the copy.
     init (content: Int64) {
-        array = GArray (content: content)
-        var copy = content
-        // Array took a reference, we do not need to take it.
-        GArray.destructor (&copy)
+        array = GArray(alreadyOwnedContent: content)
+    }
+    
+    init(takingOver content: Int64) {
+        array = GArray(alreadyOwnedContent: content)
     }
 	
     /// Initializes the collection using an array literal, for example: `let objectCollection: ObjectCollection<Node> = [Node()]`

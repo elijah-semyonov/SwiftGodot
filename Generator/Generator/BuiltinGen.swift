@@ -195,13 +195,13 @@ func preparingArgs(_ p: Printer, arguments: [GodotArgument], index: Int = 0, bod
                     "pArg\($0)"
                 }
                 .joined(separator: ", ")
-            p("withUnsafePointer(to: UnsafeRawPointersN\(arguments.count)(\(rawPointersInitArgs))", arg: " pArgs in", newLineAfterBlock: false) {
+            p("withUnsafePointer(to: UnsafeRawPointersN\(arguments.count)(\(rawPointersInitArgs))", arg: " pArgs in") {
                 p("pArgs.withMemoryRebound(to: UnsafeRawPointer?.self, capacity: \(arguments.count))", arg: " pArgs in") {
                     p(body("pArgs", arguments.count))
                 }
             }
         } else {
-            p("withUnsafePointer(to: pArg0)", arg: " pArgs in", newLineAfterBlock: false) {
+            p("withUnsafePointer(to: pArg0)", arg: " pArgs in") {
                 p(body("pArgs", arguments.count))
             }
         }
@@ -411,8 +411,8 @@ func generateBuiltinOperators (_ p: Printer,
                     modifyMarshaledExpression: false
                 )
                 
-                p("withUnsafePointer(to: \(lhs.asWithUnsafePointerToArgument))", arg: " pLhs in", newLineAfterBlock: false) {
-                    p("withUnsafePointer(to: \(rhs.asWithUnsafePointerToArgument))", arg: " pRhs in", newLineAfterBlock: false) {
+                p("withUnsafePointer(to: \(lhs.asWithUnsafePointerToArgument))", arg: " pLhs in") {
+                    p("withUnsafePointer(to: \(rhs.asWithUnsafePointerToArgument))", arg: " pRhs in") {
                         p("\(typeName).\(ptrName)(pLhs, pRhs, \(ptrResult))")
                     }
                 }
@@ -764,10 +764,12 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                 }
                 """)
                 
-                p ("// Used to construct objects when the underlying built-in's ref count has already been incremented for me")
-                p ("public required init(alreadyOwnedContent content: ContentType)") {
-                    p ("self.content = content")
+                p("""
+                // Initialize with ContentType assuming it's solely owning it now
+                public required init(takingOver otherContent: ContentType) {
+                    content = otherContent
                 }
+                """)
             }
            
             func memberDoc (_ name: String) {

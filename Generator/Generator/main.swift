@@ -121,7 +121,7 @@ for x in ["Float", "Int", "float", "int", "Int32", "Bool", "bool"] {
 }
 
 let buildConfiguration: String = "float_64"
-var builtinSizes: [String: Int] = [:]
+var builtinSizes: [String: Int] = ["bool": 1]
 for cs in jsonApi.builtinClassSizes {
     if cs.buildConfiguration == buildConfiguration {
         for c in cs.sizes {

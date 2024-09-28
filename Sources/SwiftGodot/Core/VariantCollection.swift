@@ -35,7 +35,7 @@ public class VariantCollection<Element: VariantStorable>: Collection, Expressibl
     
     /// Initializes the collection with an empty typed GArray
     public init () {
-        array = GArray (Element.self)
+        array = GArray(Element.self)
     }
     
     /// Creates a new instance from the given variant if it contains a GArray

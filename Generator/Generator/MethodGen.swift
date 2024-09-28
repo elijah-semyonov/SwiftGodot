@@ -28,17 +28,16 @@ enum MethodGenType {
 enum MethodReturnValue {
     case void
     case opaquePointer
-    case string  // Special case due to implicit bridging to Swift String
-    case variant
+    case string // Special case due to implicit bridging to Swift String
     case builtInClass(String)
     case builtInStruct(String)
-    case `class`(String)
+    case `class`(String, isOptional: Bool)
     case enumRawValue(String)
     case bitFieldRawValue(String)
     case variantsCollection(String)
     case objectsCollection(String)
     
-    init(from godotReturnValue: JGodotReturnValue?) {
+    init(from godotReturnValue: JGodotReturnValue?, methodName: String) {
         if let godotReturnValue {
             let type = godotReturnValue.type
             
@@ -63,7 +62,7 @@ enum MethodReturnValue {
                                 self = .builtInStruct(name)
                             }
                         } else {
-                            self = .class(name)
+                            self = .class(name, isOptional: isReturnOptional(className: name, method: methodName))
                         }
                     }
                 case 2:
@@ -73,7 +72,7 @@ enum MethodReturnValue {
                     case "enum":
                         self = .enumRawValue(name)
                     case "typedarray":
-                        if builtinGodotTypeNames[name] != nil {
+                        if builtinSizes[name] != nil {
                             self = .variantsCollection(name)
                         } else {
                             self = .objectsCollection(name)
@@ -154,45 +153,37 @@ func isRefParameterOptional (className: String, method: String, arg: String) -> 
 func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef: JClassInfo?, usedMethods: Set<String>, kind: MethodGenType, asSingleton: Bool) -> String? {
     var registerVirtualMethodName: String? = nil
     
-    let returnValue = MethodReturnValue(from: method.returnValue)
-    
-    if let arguments = method.arguments, arguments.contains(where: { $0.type.contains("*")}) {
-        var fault = false
+    if let arguments = method.arguments {
         for arg in arguments {
-            if arg.type.contains ("*") {
+            if arg.type.contains("*") {
                 switch arg.type {
                 case "const void*":
                     break
                 case "AudioFrame*":
                     break
                 default:
-                    if !fault {
-                        fault = true
-                        //print ("TODO: do not currently have support for C pointer types \(cdef?.name ?? "").\(method.name):")
-                    }
-                    //print ("     \(arg.name): \(arg.type)")
-                    break
+                    print("Unsupported `\(arg.type)`, skipping `\(className).\(method.name)`")
+                    return nil
                 }
             }
         }
-        if fault {
-            return nil
-        }
     }
-    let bindName = "method_\(method.name)"
-    var visibility: String
-    var allEliminate: String
-    var finalp: String
-    // Default method name
-    var methodName: String = godotMethodToSwift (method.name)
-    let instanceOrStatic = method.isStatic || asSingleton ? " static" : ""
-    var inline = ""
+    
+    let returnValue = MethodReturnValue(from: method.returnValue, methodName: method.name)
+    
+    let methodBindName = "method_\(method.name)"
+    var visibilityAttribute: String
+    var defaultArgumentsLabel: String
+    var finalAttribute: String
+    var swifMethodName = godotMethodToSwift(method.name)
+    let staticAttribute = method.isStatic || asSingleton ? " static" : ""
+    var inlineAttribute = ""
     if let methodHash = method.optionalHash {
-        let staticVarVisibility = if bindName != "method_get_class" { "fileprivate " } else { "" }
+        let staticVarVisibility = if methodBindName != "method_get_class" { "fileprivate " } else { "" }
         assert (!method.isVirtual)
         switch kind {
         case .class:
-            p.staticVar(visibility: staticVarVisibility, name: bindName, type: "GDExtensionMethodBindPtr") {
+            p.staticVar(visibility: staticVarVisibility, name: methodBindName, type: "GDExtensionMethodBindPtr") {
                 p ("let methodName = StringName (\"\(method.name)\")")
             
                 p ("return withUnsafePointer (to: &\(className).godotClassName.content)", arg: " classPtr in") {
@@ -202,7 +193,7 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
                 }
             }
         case .utility:
-            p.staticVar(visibility: staticVarVisibility, name: bindName, type: "GDExtensionPtrUtilityFunction") {
+            p.staticVar(visibility: staticVarVisibility, name: methodBindName, type: "GDExtensionPtrUtilityFunction") {
                 p ("let methodName = StringName (\"\(method.name)\")")
                 p ("return withUnsafePointer (to: &methodName.content)", arg: " ptr in") {
                     p ("return gi.variant_get_ptr_utility_function (ptr, \(methodHash))!")
@@ -212,29 +203,29 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
         
         // If this is an internal, and being reference by a property, hide it
         if usedMethods.contains (method.name) {
-            inline = "@inline(__always)"
+            inlineAttribute = "@inline(__always)"
             // Try to hide as much as possible, but we know that Godot child nodes will want to use these
             // (DirectionalLight3D and Light3D) rely on this.
-            visibility = method.name == "get_param" || method.name == "set_param" ? "internal" : "fileprivate"
-            allEliminate = "_ "
-            methodName = method.name
+            visibilityAttribute = method.name == "get_param" || method.name == "set_param" ? "internal" : "fileprivate"
+            defaultArgumentsLabel = "_ "
+            swifMethodName = method.name
         } else {
-            visibility = "public"
-            allEliminate = ""
+            visibilityAttribute = "public"
+            defaultArgumentsLabel = ""
         }
-        if instanceOrStatic == "" {
-            finalp = "final "
+        if staticAttribute == "" {
+            finalAttribute = "final "
         } else {
-            finalp = ""
+            finalAttribute = ""
         }
     } else {
         assert (method.isVirtual)
         // virtual overwrittable method
-        finalp = ""
-        visibility = "@_documentation(visibility: public)\nopen"
-        allEliminate = ""
+        finalAttribute = ""
+        visibilityAttribute = "@_documentation(visibility: public)\nopen"
+        defaultArgumentsLabel = ""
             
-        registerVirtualMethodName = methodName
+        registerVirtualMethodName = swifMethodName
     }
     
     struct Builder {
@@ -377,9 +368,9 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
         case .utility:
             let ptrArgs = hasArgs ? "_args" : "nil"
             let call_object_method_bind = if method.isVararg {
-                "\(bindName) (\(ptrResult), \(ptrArgs), Int32 (_args.count))"
+                "\(methodBindName) (\(ptrResult), \(ptrArgs), Int32 (_args.count))"
             } else {
-                "\(bindName) (\(ptrResult), \(ptrArgs), Int32 (\(method.arguments?.count ?? 0)))"
+                "\(methodBindName) (\(ptrResult), \(ptrArgs), Int32 (\(method.arguments?.count ?? 0)))"
             }
             return
                 """
@@ -401,9 +392,9 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
             }
         case .utility:
             if method.isVararg {
-                return "\(bindName) (\(ptrResult), \(ptrArgs), Int32 (_args.count))"
+                return "\(methodBindName) (\(ptrResult), \(ptrArgs), Int32 (_args.count))"
             } else {
-                return "\(bindName) (\(ptrResult), \(ptrArgs), Int32 (\(method.arguments?.count ?? 0)))"
+                return "\(methodBindName) (\(ptrResult), \(ptrArgs), Int32 (\(method.arguments?.count ?? 0)))"
             }
         }
     }
@@ -438,7 +429,7 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
     }
     
     var withUnsafeCallNestLevel = 0
-    var eliminate: String = allEliminate
+    var eliminate: String = defaultArgumentsLabel
     if let margs = method.arguments {
         var firstArg: String? = nil
         for arg in margs {
@@ -453,10 +444,10 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
                 if shouldOmitFirstArgLabel(typeName: className, methodName: method.name, argName: arg.name) {
                     eliminate = "_ "
                 } else {
-                    eliminate = allEliminate
+                    eliminate = defaultArgumentsLabel
                 }
             } else {
-                eliminate = allEliminate
+                eliminate = defaultArgumentsLabel
             }
             firstArg = arg.name
             args += getArgumentDeclaration(arg, eliminate: eliminate, isOptional: isRefOptional)
@@ -585,8 +576,8 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
         argSetup += varArgSetup.indented(by: withUnsafeCallNestLevel)
     }
     
-    if inline != "" {
-        p (inline)
+    if inlineAttribute != "" {
+        p (inlineAttribute)
     }
     // Sadly, the parameters have no useful documentation
     doc (p, cdef, method.description)
@@ -596,51 +587,51 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
             p ("@discardableResult /* discardable per discardableList: \(className), \(method.name) */ ")
         }
     }
-    p ("\(visibility)\(instanceOrStatic) \(finalp)func \(methodName) (\(args))\(returnType != "" ? "-> " + returnType : "")") {
+    p ("\(visibilityAttribute)\(staticAttribute) \(finalAttribute)func \(swifMethodName) (\(args))\(returnType != "" ? "-> " + returnType : "")") {
         // We will change the nest level in the body after we print out the prefix of the nested withUnsafe calls
         p("// \(returnValue)")
-
-        if method.optionalHash == nil {
-            if let godotReturnType {
-                p (makeDefaultReturn (godotType: godotReturnType))
-            }
-        } else {
-            if returnType != "" {
-                p(returnTypeDecl())
-            } else if (method.isVararg) {
-                p ("var _result: Variant.ContentType = Variant.zero")
-            }
-            
-            if builder.setup != "" {
-                p(builder.setup)
-                p(builder.call)
-            }
-            
-            if argSetup != "" {
-                p (argSetup)
-            }
-            if withUnsafeCallNestLevel > 0 {
-                p.indent += withUnsafeCallNestLevel
-            }
-
-            p(call_object_method_bind(ptrArgs: getArgsPtr(), ptrResult: getResultPtr()))
-            
-            if returnType != "" {
-                p (getReturnResult())
-            }
-            
-            // Unwrap the nested calls to 'withUnsafePointer'
-            while withUnsafeCallNestLevel > 0 {
-                withUnsafeCallNestLevel -= 1
-                p.indent -= 1
-                p ("}")
-            }
-            
-// REFACTOR: just so we can see the two side-by-side
-            if builder.setup != "" {
-                p ("\n#endif")
-            }
-        }
+        p("fatalError()")
+//        if method.optionalHash == nil {
+//            if let godotReturnType {
+//                p (makeDefaultReturn (godotType: godotReturnType))
+//            }
+//        } else {
+//            if returnType != "" {
+//                p(returnTypeDecl())
+//            } else if (method.isVararg) {
+//                p ("var _result: Variant.ContentType = Variant.zero")
+//            }
+//            
+//            if builder.setup != "" {
+//                p(builder.setup)
+//                p(builder.call)
+//            }
+//            
+//            if argSetup != "" {
+//                p (argSetup)
+//            }
+//            if withUnsafeCallNestLevel > 0 {
+//                p.indent += withUnsafeCallNestLevel
+//            }
+//
+//            p(call_object_method_bind(ptrArgs: getArgsPtr(), ptrResult: getResultPtr()))
+//            
+//            if returnType != "" {
+//                p (getReturnResult())
+//            }
+//            
+//            // Unwrap the nested calls to 'withUnsafePointer'
+//            while withUnsafeCallNestLevel > 0 {
+//                withUnsafeCallNestLevel -= 1
+//                p.indent -= 1
+//                p ("}")
+//            }
+//            
+//// REFACTOR: just so we can see the two side-by-side
+//            if builder.setup != "" {
+//                p ("\n#endif")
+//            }
+//        }
     }
     return registerVirtualMethodName
 }
