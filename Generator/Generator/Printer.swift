@@ -68,7 +68,7 @@ class Printer {
     }
 
     // Prints a block, automatically indents the code in the closure
-    func b (_ str: String, arg: String? = nil, suffix: String = "", block: () -> ()) {
+    func b (_ str: String, arg: String? = nil, suffix: String = "", newLineAfterBlock: Bool = true, block: () -> ()) {
         p (str + " {" + (arg ?? ""))
         indent += 1
         let saved = indent
@@ -77,7 +77,10 @@ class Printer {
             print ("Indentation out of sync, the nested block messed with indentation")
         }
         indent -= 1
-        p ("}\(suffix)\n")
+        p ("}\(suffix)")
+        if newLineAfterBlock {
+            p ("")
+        }
     }
 
     func callAsFunction(_ str: String) {
@@ -85,7 +88,11 @@ class Printer {
     }
     
     func callAsFunction(_ str: String, arg: String? = nil, suffix: String = "", block: () -> ()) {
-        b (str, arg: arg, suffix: suffix, block: block)
+        b(str, arg: arg, suffix: suffix, block: block)
+    }
+    
+    func callAsFunction(_ str: String, arg: String? = nil, suffix: String = "", newLineAfterBlock: Bool, block: () -> ()) {
+        b(str, arg: arg, suffix: suffix, newLineAfterBlock: newLineAfterBlock, block: block)
     }
     
     func save (_ file: String) {

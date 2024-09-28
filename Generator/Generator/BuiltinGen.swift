@@ -174,22 +174,14 @@ func generateBuiltinCtors (_ p: Printer,
                     return
                 }
             }
-            var (argPrepare, nestLevel, argsRef) = generateArgPrepare(isVararg: false, m.arguments ?? [], methodHasReturn: false)
-            if argPrepare != "" {
-                p (argPrepare)
-                if nestLevel > 0 {
-                    p.indent += nestLevel
-                }
+            
+            if m.arguments?.contains(where: { arg in
+                arg.name == "angle"
+            }) ?? false {
+                print("hello")
             }
-            
-            // Call
-            p ("\(typeName).\(ptrName) (&\(ptr), \(argsRef))")
-            
-            // Unwrap the nested calls to 'withUnsafePointer'
-            while nestLevel > 0 {
-                nestLevel -= 1
-                p.indent -= 1
-                p ("}")
+            preparingArgs(p, arguments: m.arguments, modifyMarshaledExpressions: true) { argsRef, argsCount in
+                return "\(typeName).\(ptrName)(&\(ptr), \(argsRef))"
             }
         }
     }
@@ -200,18 +192,64 @@ enum MethodCallKind {
     case operatorCall
 }
 
-func generateMethodCall (_ p: Printer,
-                         typeName: String,
-                         methodToCall: String,
-                         godotReturnType: String?,
-                         isStatic: Bool,
-                         isVararg: Bool,
-                         arguments: [JGodotArgument]?,
-                         kind: MethodCallKind) {
-    let has_return = godotReturnType != nil
+func preparingArgs(_ p: Printer, arguments: [GodotArgument], index: Int = 0, body: (String, Int) -> String) {
+    if index >= arguments.count {
+        if arguments.count > 1 {
+            let rawPointersInitArgs = (0..<arguments.count)
+                .map {
+                    "pArg\($0)"
+                }
+                .joined(separator: ", ")
+            p("withUnsafePointer(to: UnsafeRawPointersN\(arguments.count)(\(rawPointersInitArgs))", arg: " pArgs in", newLineAfterBlock: false) {
+                p("pArgs.withMemoryRebound(to: UnsafeRawPointer?.self, capacity: \(arguments.count))", arg: " pArgs in") {
+                    p(body("pArgs", arguments.count))
+                }
+            }
+        } else {
+            p("withUnsafePointer(to: pArg0)", arg: " pArgs in", newLineAfterBlock: false) {
+                p(body("pArgs", arguments.count))
+            }
+        }
+    } else {
+        let argument = arguments[index]
+        
+        if let modifiedMarshaledExpression = argument.modifiedMarshaledExpression {
+            p("let \(argument.name) = \(modifiedMarshaledExpression) // shadow original argument with modified expression")
+        }
+        
+        
+        p("withUnsafePointer(to: \(argument.asWithUnsafePointerToArgument)) { pArg\(index) in") {
+            preparingArgs(p, arguments: arguments, index: index + 1, body: body)
+        }
+    }
+}
+
+/// Prepare the arguments for the departure to the Godot side and call `body` with a reference to processed arguments storage
+func preparingArgs(_ p: Printer, arguments: [JGodotArgument]?, modifyMarshaledExpressions: Bool = false, body: (String, Int) -> String) {
+    if let arguments, arguments.count > 0 {
+        preparingArgs(p, arguments: arguments.map { GodotArgument(from: $0, modifyMarshaledExpression: modifyMarshaledExpressions) }, body: body)
+    } else {
+        p(body("nil", 0))
+    }
+}
+
+func generateMethodCall(
+    _ p: Printer,
+    typeName: String,
+    methodToCall: String,
+    godotReturnType: String?,
+    isStatic: Bool,
+    isVararg: Bool,
+    arguments: [JGodotArgument]?,
+    kind: MethodCallKind
+) {
+    if isVararg {        
+        p("fatalError() // TODO")
+    }
+    let hasReturn = godotReturnType != nil
     
     let resultTypeName = "\(getGodotType (SimpleType (type: godotReturnType ?? ""), kind: .builtIn))"
-    if has_return {
+    if hasReturn {
         if godotReturnType == "String" && mapStringToSwift {
             p ("let result = GString ()")
         } else {
@@ -219,20 +257,12 @@ func generateMethodCall (_ p: Printer,
             if builtinGodotTypeNames [godotReturnType ?? ""] == .isClass {
                 declType = "let"
             }
-            p ("\(declType) result: \(resultTypeName) = \(resultTypeName)()")
-        }
-    }
-    
-    var (argPrep, nestLevel, argsRef) = generateArgPrepare(isVararg: isVararg, arguments ?? [], methodHasReturn: (godotReturnType ?? "") != "")
-    if argPrep != "" {
-        p (argPrep)
-        if nestLevel > 0 {
-            p.indent += nestLevel
+            p ("\(declType) result = \(resultTypeName)()")
         }
     }
         
     let ptrResult: String
-    if has_return {
+    if hasReturn {
         let isStruct = isStructMap [godotReturnType ?? ""] ?? false
         if isStruct {
             ptrResult = "&result"
@@ -242,43 +272,26 @@ func generateMethodCall (_ p: Printer,
     } else {
         ptrResult = "nil"
     }
-    
-    // Method calls pass the number of parameters to the method
-    var argCount: String
-    if isVararg {
-        // All the arguments that we accumulated, count dynamically
-        argCount = "Int32(args.count)"
-    } else {
-        // We know statically the number of arguments, harcode that
-        argCount = "\(arguments?.count ?? 0)"
-    }
-    let numberOfArgs = kind == .methodCall ? ", \(argCount)" : ""
-    
-    if isStatic {
-            p ("\(typeName).\(methodToCall) (nil, \(argsRef), \(ptrResult)\(numberOfArgs))")
-    } else {
-        if isStructMap [typeName] ?? false {
-            p ("var mutSelfCopy = self")
-            p ("withUnsafeMutablePointer (to: &mutSelfCopy) { ptr in ")
-            p ("    \(typeName).\(methodToCall) (ptr, \(argsRef), \(ptrResult)\(numberOfArgs))")
-            p ("}")
+                    
+    preparingArgs(p, arguments: arguments) { argsRef, argsCount in
+        if isStatic {
+            return "(methodToCall)(nil, \(argsRef), \(ptrResult), \(argsCount)"
         } else {
-            p ("\(typeName).\(methodToCall) (&content, \(argsRef), \(ptrResult)\(numberOfArgs))")
+            if isStructMap [typeName] ?? false {
+                return """
+                var mutSelfCopy = self
+                withUnsafeMutablePointer(to: &mutSelfCopy) { pMutSelfCopy in
+                    \(typeName).\(methodToCall)(pMutSelfCopy, \(argsRef), \(ptrResult), \(argsCount))
+                }
+                """
+            } else {
+                return "\(typeName).\(methodToCall)(&content, \(argsRef), \(ptrResult), \(argsCount))"
+            }
         }
     }
-    if has_return {
-        // let cast = castGodotToSwift (m.returnType, "result")
-        if godotReturnType == "String" && mapStringToSwift {
-            p ("return result.description")
-        } else {
-            p ("return result")
-        }
-    }
-    // Unwrap the nested calls to 'withUnsafePointer'
-    while nestLevel > 0 {
-        nestLevel -= 1
-        p.indent -= 1
-        p ("}")
+    
+    if hasReturn {
+        p("return result")
     }
 }
 
@@ -392,18 +405,29 @@ func generateBuiltinOperators (_ p: Printer,
                 } else {
                     ptrResult = "&result.content"
                 }
-                let rhsa = JGodotArgument(name: "rhs", type: right, defaultValue: nil, meta: nil)
-                let rhs = getArgRef (arg: rhsa)
-                let lhsa = JGodotArgument(name: "lhs", type: godotTypeName, defaultValue: nil, meta: nil)
-                let lhs = getArgRef (arg: lhsa)
-                p (generateCopies([lhsa, rhsa]))
-                p ("\(typeName).\(ptrName) (\(lhs), \(rhs), \(ptrResult))")
-                if op.returnType == "String" && mapStringToSwift {
-                    p ("return result.description")
-                } else {
-                    p ("return result")
+                
+                let lhs = GodotArgument(
+                    from: JGodotArgument(name: "lhs", type: godotTypeName, defaultValue: nil, meta: nil),
+                    modifyMarshaledExpression: false
+                )
+                
+                let rhs = GodotArgument(
+                    from: JGodotArgument(name: "rhs", type: right, defaultValue: nil, meta: nil),
+                    modifyMarshaledExpression: false
+                )
+                
+                p("withUnsafePointer(to: \(lhs.asWithUnsafePointerToArgument))", arg: " pLhs in", newLineAfterBlock: false) {
+                    p("withUnsafePointer(to: \(rhs.asWithUnsafePointerToArgument))", arg: " pRhs in", newLineAfterBlock: false) {
+                        p("\(typeName).\(ptrName)(pLhs, pRhs, \(ptrResult))")
+                    }
                 }
                 
+                if op.returnType == "String" && mapStringToSwift {
+                    p("return result.description")
+                } else {
+                    p("return result")
+                }
+
                 if let customImplementation {
                     p("#else // CUSTOM_BUILTIN_IMPLEMENTATIONS")
                     p(customImplementation)
@@ -442,7 +466,7 @@ func generateBuiltinMethods (_ p: Printer,
         if ret == "Object" {
             continue
         }
-        let retSig = ret == "" ? "" : "-> \(ret)"
+        let retSig = ret == "" ? "" : " -> \(ret)"
         var args = ""
     
         let ptrName = "method_\(m.name)"
