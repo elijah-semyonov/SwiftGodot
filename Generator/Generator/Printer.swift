@@ -75,10 +75,10 @@ class Printer {
             print ("Indentation out of sync, the nested block messed with indentation")
         }
         indent -= 1
-        p ("}\(suffix)")        
+        p ("}\(suffix)\n")        
     }
 
-    func callAsFunction(_ str: String = "") {
+    func callAsFunction(_ str: String) {
         p (str)
     }
     

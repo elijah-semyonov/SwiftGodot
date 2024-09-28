@@ -195,14 +195,16 @@ func preparingArgs(_ p: Printer, arguments: [GodotArgument], index: Int = 0, bod
                     "pArg\($0)"
                 }
                 .joined(separator: ", ")
-            p("withUnsafePointer(to: UnsafeRawPointersN\(arguments.count)(\(rawPointersInitArgs))", arg: " pArgs in") {
+            p("withUnsafePointer(to: UnsafeRawPointersN\(arguments.count)(\(rawPointersInitArgs)))", arg: " pArgs in") {
                 p("pArgs.withMemoryRebound(to: UnsafeRawPointer?.self, capacity: \(arguments.count))", arg: " pArgs in") {
                     p(body("pArgs", arguments.count))
                 }
             }
         } else {
             p("withUnsafePointer(to: pArg0)", arg: " pArgs in") {
-                p(body("pArgs", arguments.count))
+                p("pArgs.withMemoryRebound(to: UnsafeRawPointer?.self, capacity: \(arguments.count))", arg: " pArgs in") {
+                    p(body("pArgs", arguments.count))
+                }
             }
         }
     } else {
@@ -213,7 +215,7 @@ func preparingArgs(_ p: Printer, arguments: [GodotArgument], index: Int = 0, bod
         }
         
         
-        p("withUnsafePointer(to: \(argument.asWithUnsafePointerToArgument)) { pArg\(index) in") {
+        p("withUnsafePointer(to: \(argument.asWithUnsafePointerToArgument))", arg: " pArg\(index) in") {
             preparingArgs(p, arguments: arguments, index: index + 1, body: body)
         }
     }
@@ -270,7 +272,7 @@ func generateMethodCall(
                     
     preparingArgs(p, arguments: arguments) { argsRef, argsCount in
         if isStatic {
-            return "(methodToCall)(nil, \(argsRef), \(ptrResult), \(argsCount)"
+            return "\(methodToCall)(nil, \(argsRef), \(ptrResult), \(argsCount))"
         } else {
             if isStructMap [typeName] ?? false {
                 return """
@@ -766,7 +768,7 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                 
                 p("""
                 // Initialize with ContentType assuming it's solely owning it now
-                public required init(takingOver otherContent: ContentType) {
+                public required init(alreadyOwnedContent otherContent: ContentType) {
                     content = otherContent
                 }
                 """)
