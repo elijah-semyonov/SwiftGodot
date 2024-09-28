@@ -183,154 +183,57 @@ func getArgumentDeclaration (_ argument: JGodotArgument, eliminate: String, kind
     return "\(eliminate)\(godotArgumentToSwift (argument.name)): \(optNeedInOut)\(getGodotType(argument, kind: kind))\(isOptional ? "?" : "")\(def)"
 }
 
-func getArgRef (arg: JGodotArgument) -> String {
-    var argref: String
-    var optstorage: String
-    var needAddress = "&"
-    if !(isStructMap [arg.type] ?? false) { // { ) isCoreType(name: arg.type){
-        argref = godotArgumentToSwift (arg.name)
-        if isStructMap [arg.type] ?? false {
-            optstorage = ""
-        } else if arg.type == "String" && mapStringToSwift {
-            argref = "gstr_\(arg.name)"
-            optstorage = ".content"
-        } else {
-            if builtinSizes [arg.type] != nil && arg.type != "Object" {
-                optstorage = ".content"
-            } else {
-                needAddress = "&"
-                optstorage = ".handle"
-            }
-        }
-    } else {
-        argref = "copy_\(arg.name)"
-        optstorage = ""
-    }
-    if (isStructMap [arg.type] ?? false) {
-        return "\(needAddress)\(escapeSwift(argref))\(optstorage)"
-    } else {
-        return "\(needAddress)\(escapeSwift(argref))\(optstorage)"
-    }
+enum PointerExtractionStrategy {
+    case directly
+    case contentRef
+    case handleRef
+    case typedArray
 }
 
-func generateCopies (_ args: [JGodotArgument]) -> String {
-    var body = ""
-    
-    for arg in args {
-        //if !isCoreType (name: arg.type) {
-        var reference = godotArgumentToSwift (arg.name)
+struct GodotArgument {
+    let name: String
+    private let pointerExtractionStrategy: PointerExtractionStrategy
         
-        if isStructMap [arg.type] ?? false {
+    var asWithUnsafePointerToArgument: String {
+        switch pointerExtractionStrategy {
+        case .directly:
+            return "\(name)"
+        case .contentRef:
+            return "&\(name).content"
+        case .handleRef:
+            return "&\(name).handle"
+        case .typedArray:
+            return "&\(name).array.content"
+        }
+    }
+    
+    /// For arguments, that need conversions before being marshaled
+    let modifiedMarshaledExpression: String?
+    
+    /// Parse JGodotArgument and figure out it should be marshalled
+    /// In some contexts (like BuiltIn constructors) Godot doesn't respect its own meta so we need to manually
+    /// convert `Float` into `Double`.
+    init(from arg: JGodotArgument, modifyMarshaledExpression: Bool) {
+        name = godotArgumentToSwift(arg.name)
+        
+        if modifyMarshaledExpression {
             if arg.type == "float" {
-                reference = "Double (\(reference))"
+                modifiedMarshaledExpression = "Double(\(name))"
+            } else {
+                modifiedMarshaledExpression = nil
             }
-            body += "var copy_\(arg.name) = \(reference)\n"
-        } else if arg.type == "String" && mapStringToSwift {
-            body += "let gstr_\(arg.name) = GString (\(reference))\n"
+        } else {
+            modifiedMarshaledExpression = nil
+        }
+        
+        if isStructMap[arg.type] ?? false {
+            pointerExtractionStrategy = .directly
+        } else {
+            if builtinSizes[arg.type] != nil && arg.type != "Object" {
+                pointerExtractionStrategy = .contentRef
+            } else {
+                pointerExtractionStrategy = .handleRef
+            }
         }
     }
-    return body
-}
-
-/// Wrap arguments before marshaling them to Godot
-///
-/// Returns a tuple of
-/// - `body` - blob with arguments preparation
-/// - `identation` - for caller to add missing braces
-/// - `argsRef` - literal expression to be passed into GDExtensionInterface. Can be `nil` if method takes no args, `args` if arguments are wrapped into stack-resident struct, or `&args` if legacy approach is used and `[UnsafeRawPointer?]` is passed.
-func generateArgPrepare(isVararg: Bool, _ args: [JGodotArgument], methodHasReturn: Bool) -> (body: String, indentation: Int, argsRef: String) {
-    // A runtime hook for opt-out from using new marshaling in case some specific method breaks
-    var useLegacyMarshalling = false
-        
-    #if LEGACY_MARSHALING || !canImport(Darwin)
-    useLegacyMarshalling = true
-    #endif
-    
-    if useLegacyMarshalling {
-        return generateArgPrepareLegacy(isVararg: isVararg, args, methodHasReturn: methodHasReturn)
-    } else {
-        return generateArgPrepareNew(isVararg: isVararg, args, methodHasReturn: methodHasReturn)
-    }
-}
-
-func generateArgPrepareLegacy(isVararg: Bool, _ args: [JGodotArgument], methodHasReturn: Bool) -> (body: String, indentation: Int, argsRef: String) {
-    var body = ""
-    var withUnsafeCallNestLevel = 0
-    let retFromWith = methodHasReturn ? "return " : ""
-    
-    let argsRef: String
-    
-    if isVararg || args.count > 0 {
-        body += generateCopies (args)
-        body += "var args: [UnsafeRawPointer?] = []\n"
-        if isVararg {
-            body += "let cptr = UnsafeMutableBufferPointer<Variant.ContentType>.allocate(capacity: arguments.count)\n"
-            body += "defer { cptr.deallocate () }\n\n"
-        }
-        
-        for arg in args {
-            let prefix = String(repeating: " ", count: withUnsafeCallNestLevel * 4)
-            let ar = getArgRef(arg: arg)
-            body += "\(prefix)\(retFromWith)withUnsafePointer (to: \(ar)) { p\(withUnsafeCallNestLevel) in\n\(prefix)    args.append (p\(withUnsafeCallNestLevel))\n"
-            withUnsafeCallNestLevel += 1
-        }
-        if isVararg {
-            body += "for idx in 0..<arguments.count {\n"
-            body += "    cptr [idx] = arguments [idx].content\n"
-            body += "    args.append (cptr.baseAddress! + idx)\n"
-            body += "}\n"
-        }
-        
-        argsRef = "&args"
-    } else {
-        argsRef = "nil"
-    }
-    
-    return (body, withUnsafeCallNestLevel, argsRef)
-}
-
-func generateArgPrepareNew(isVararg: Bool, _ args: [JGodotArgument], methodHasReturn: Bool) -> (body: String, indentation: Int, argsRef: String) {
-    var body = ""
-    var withUnsafeCallNestLevel = 0
-    let retFromWith = methodHasReturn ? "return " : ""
-    
-    let argsRef: String
-    
-    // TODO: this case should get the same treatment as a second branch.
-    if isVararg {
-        body += generateCopies(args)
-        body += "var args: [UnsafeRawPointer?] = []\n"
-        body += "let cptr = UnsafeMutableBufferPointer<Variant.ContentType>.allocate(capacity: arguments.count)\n"
-        body += "defer { cptr.deallocate () }\n\n"        
-        
-        for arg in args {
-            let prefix = String(repeating: " ", count: withUnsafeCallNestLevel * 4)
-            let ar = getArgRef(arg: arg)
-            body += "\(prefix)\(retFromWith)withUnsafePointer (to: \(ar)) { p\(withUnsafeCallNestLevel) in\n\(prefix)    args.append (p\(withUnsafeCallNestLevel))\n"
-            withUnsafeCallNestLevel += 1
-        }
-        body += "for idx in 0..<arguments.count {\n".indented(by: withUnsafeCallNestLevel)
-        body += "    cptr [idx] = arguments [idx].content\n".indented(by: withUnsafeCallNestLevel)
-        body += "    args.append (cptr.baseAddress! + idx)\n".indented(by: withUnsafeCallNestLevel)
-        body += "}\n".indented(by: withUnsafeCallNestLevel)
-        
-        argsRef = "&args"
-    } else if args.count > 0 {
-        body += generateCopies(args)
-        
-        let prefix = String(repeating: " ", count: withUnsafeCallNestLevel * 4)
-        
-        let argsString = args.map { arg in
-            getArgRef(arg: arg)
-        }.joined(separator: ", ")
-        
-        body += "\(prefix)\(retFromWith)withUnsafeArgumentsPointer(\(argsString)) { args in"
-        withUnsafeCallNestLevel += 1
-        
-        argsRef = "args"
-    } else {
-        argsRef = "nil"
-    }
-    
-    return (body, withUnsafeCallNestLevel, argsRef)
 }
