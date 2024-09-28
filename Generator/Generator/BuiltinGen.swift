@@ -174,12 +174,7 @@ func generateBuiltinCtors (_ p: Printer,
                     return
                 }
             }
-            
-            if m.arguments?.contains(where: { arg in
-                arg.name == "angle"
-            }) ?? false {
-                print("hello")
-            }
+                        
             preparingArgs(p, arguments: m.arguments, modifyMarshaledExpressions: true) { argsRef, argsCount in
                 return "\(typeName).\(ptrName)(&\(ptr), \(argsRef))"
             }
