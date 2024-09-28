@@ -35,7 +35,7 @@ func MemberBuiltinJsonTypeToSwift (_ type: String) -> String {
 }
 
 /// Returns true for the Built-in types that are generated as classes, rather than structures
-func isBuiltinClass (_ godotTypeName: String) -> Bool {
+func isBuiltinClassTranslatedAsSwiftClass (_ godotTypeName: String) -> Bool {
     builtinClassStorage [godotTypeName] != nil
 }
 

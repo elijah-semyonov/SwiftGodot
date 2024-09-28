@@ -25,53 +25,107 @@ enum MethodGenType {
     case `utility`
 }
 
+enum MethodReturnValue {
+    case void
+    case opaquePointer
+    case string  // Special case due to implicit bridging to Swift String
+    case variant
+    case builtInClass(String)
+    case builtInStruct(String)
+    case `class`(String)
+    case enumRawValue(String)
+    case bitFieldRawValue(String)
+    case variantsCollection(String)
+    case objectsCollection(String)
+    
+    init(from godotReturnValue: JGodotReturnValue?) {
+        if let godotReturnValue {
+            let type = godotReturnValue.type
+            
+            if type.contains("*") {
+                self = .opaquePointer
+            } else {
+                let tokens = type.split(separator: "::").map { String($0) }
+                
+                switch tokens.count {
+                case 1:
+                    let name = tokens[0]
+                    
+                    switch name {
+                    case "String":
+                        self = .string
+                    default:
+                        if let builtInType = builtinGodotTypeNames[name] {
+                            switch builtInType {
+                            case .swiftClass:
+                                self = .builtInClass(name)
+                            case .swiftStruct:
+                                self = .builtInStruct(name)
+                            }
+                        } else {
+                            self = .class(name)
+                        }
+                    }
+                case 2:
+                    let prefix = tokens[0]
+                    let name = tokens[1]
+                    switch prefix {
+                    case "enum":
+                        self = .enumRawValue(name)
+                    case "typedarray":
+                        if builtinGodotTypeNames[name] != nil {
+                            self = .variantsCollection(name)
+                        } else {
+                            self = .objectsCollection(name)
+                        }
+                    case "bitfield":
+                        self = .bitFieldRawValue(name)
+                    default:
+                        fatalError("Unknown return type prefix: \(tokens[0])")
+                        
+                    }
+                default:
+                    fatalError("Invalid return type: \(type)")
+                }
+            }
+        } else {
+            self = .void
+        }
+    }
+}
+
+/// [className: Set<methodName>] of methods whose return values is never nil
+let nonOptionalReturnValues: [String: Set<String>] = [
+    "RenderingServer": ["get_rendering_device"]
+]
+
 // To test the design, will use an external file later
 // determines whether the className/method returns an optional reference type
 func isReturnOptional (className: String, method: String) -> Bool {
-    switch className {
-    case "RenderingServer":
-        switch method {
-        case "get_rendering_device":
-            return false
-        default:
-            return true
-        }
-    default:
-        return true
-    }
+    guard let methods = nonOptionalReturnValues[className] else { return true }
+    
+    return !methods.contains(method)
 }
+
+/// [className: [methodName: Set<argumentName>] of parameters that are required
+let nonOptionalReferenceArguments: [String: [String: Set<String>]] = [
+    "Node": [
+        "_input": ["event"]
+    ],
+    
+    "Image": [
+        "blit_rect": ["src"]
+    ]
+]
 
 // To test the design, will use an external file later
 // determines whether the className/method/argument is an optional reference type
 func isRefParameterOptional (className: String, method: String, arg: String) -> Bool {
-    switch className {
-    case "Node":
-        switch method {
-        case "_input":
-            switch arg {
-            case "event":
-                return false
-            default:
-                return true
-            }
-        default:
-            return true
-        }
-    case "Image":
-        switch method {
-        case "blit_rect":
-            switch arg {
-            case "src":
-                return false
-            default:
-                return true
-            }
-        default:
-            return true
-        }
-    default:
-        return true
-    }
+    guard let methods = nonOptionalReferenceArguments[className] else { return true }
+    guard let arguments = methods[method] else { return true }
+    
+    return !arguments.contains(arg)
+    
 }
 
 /// The current code generation for passing parameters is both inefficient, and technically unsafe. We don't need
@@ -88,7 +142,7 @@ func isRefParameterOptional (className: String, method: String, arg: String) -> 
 /// }
 /// ```
 /// This reduces the complexity of the generated code, and can be extended to an arbitrary number of parameters.
-///
+/// And breaks compiler on Windows (sic!), so for now we use nesting, perhaps `withExtendedLifetime` is worth having a look.
 
 /// Generates a method definition
 /// - Parameters:
@@ -99,6 +153,8 @@ func isRefParameterOptional (className: String, method: String, arg: String) -> 
 /// - Returns: nil, or the method we surfaced that needs to have the virtual supporting infrastructured wired up
 func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef: JClassInfo?, usedMethods: Set<String>, kind: MethodGenType, asSingleton: Bool) -> String? {
     var registerVirtualMethodName: String? = nil
+    
+    let returnValue = MethodReturnValue(from: method.returnValue)
     
     if let arguments = method.arguments, arguments.contains(where: { $0.type.contains("*")}) {
         var fault = false
@@ -234,7 +290,7 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
                         
                         var declType: String = "let"
                         if (argTypeNeedsCopy(godotType: godotReturnType)) {
-                            if builtinGodotTypeNames [godotReturnType] != .isClass {
+                            if builtinGodotTypeNames [godotReturnType] != .swiftClass {
                                 declType = "var"
                             }
                         }
@@ -262,7 +318,7 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
                     ptrResult = "&_result"
                 }
             } else if argTypeNeedsCopy(godotType: godotReturnType) {
-                let isClass = builtinGodotTypeNames [godotReturnType] == .isClass
+                let isClass = builtinGodotTypeNames [godotReturnType] == .swiftClass
                 
                 ptrResult = isClass ? "&_result.content" : "&_result"
             } else {
@@ -296,8 +352,6 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
             let methodArgs = builder.args.joined(separator: ", ")
                         
             if method.isVararg {
-                // Large generics cause issues on Windows compiler, legacy approach is used
-                #if canImport(Darwin)
                 if hasArgs {
                     let methodArgsCount = "GDExtensionInt(\(builder.args.count))"
                     
@@ -309,12 +363,7 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
                 } else {
                     return "gi.object_method_bind_call(\([methodName, instance, "nil", "0", ptrResult, "nil"].joined(separator: ", ")))"
                 }
-                #else
-                return "gi.object_method_bind_call_v(\([methodName, instance, ptrResult, "nil", methodArgs].joined(separator: ", ")))"
-                #endif
             } else {
-                // Large generics cause issues on Windows compiler, legacy approach is used
-                #if canImport(Darwin)
                 if hasArgs {
                     return """
                     withUnsafeArgumentsPointer(\(methodArgs)) { args in
@@ -324,9 +373,6 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
                 } else {
                     return "gi.object_method_bind_ptrcall(\([methodName, instance, "nil", ptrResult].joined(separator: ", ")))"
                 }
-                #else
-                return "gi.object_method_bind_ptrcall_v(\([methodName, instance, ptrResult, methodArgs].joined(separator: ", ")))"
-                #endif
             }
         case .utility:
             let ptrArgs = hasArgs ? "_args" : "nil"
@@ -552,7 +598,8 @@ func methodGen (_ p: Printer, method: MethodDefinition, className: String, cdef:
     }
     p ("\(visibility)\(instanceOrStatic) \(finalp)func \(methodName) (\(args))\(returnType != "" ? "-> " + returnType : "")") {
         // We will change the nest level in the body after we print out the prefix of the nested withUnsafe calls
-        
+        p("// \(returnValue)")
+
         if method.optionalHash == nil {
             if let godotReturnType {
                 p (makeDefaultReturn (godotType: godotReturnType))

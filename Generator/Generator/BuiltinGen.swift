@@ -249,7 +249,7 @@ func generateMethodCall(
             p ("let result = GString ()")
         } else {
             var declType = "var"
-            if builtinGodotTypeNames [godotReturnType ?? ""] == .isClass {
+            if builtinGodotTypeNames [godotReturnType ?? ""] == .swiftClass {
                 declType = "let"
             }
             p ("\(declType) result = \(resultTypeName)()")
@@ -389,7 +389,7 @@ func generateBuiltinOperators (_ p: Printer,
                     p ("let result = GString ()")
                 } else {
                     var declType: String = "var"
-                    if builtinGodotTypeNames [op.returnType] == .isClass {
+                    if builtinGodotTypeNames [op.returnType] == .swiftClass {
                         declType = "let"
                     }
                     p ("\(declType) result: \(retType) = \(retType)()")
@@ -575,25 +575,25 @@ func generateBuiltinMethods (_ p: Printer,
     }
 }
 
-enum BKind {
-    case isStruct
-    case isClass
+enum BuiltInClassTranslation {
+    case swiftStruct
+    case swiftClass
 }
-var builtinGodotTypeNames: [String:BKind] = ["Variant": .isClass]
+var builtinGodotTypeNames: [String:BuiltInClassTranslation] = ["Variant": .swiftClass]
 var builtinClassStorage: [String:String] = [:]
 
 func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) async {
 
     func generateBuiltinClass (p: Printer, _ bc: JGodotBuiltinClass) {
         // TODO: isKeyed, hasDestrcturo,
-        let kind: BKind = builtinGodotTypeNames[bc.name]!
+        let kind: BuiltInClassTranslation = builtinGodotTypeNames[bc.name]!
         
         let typeName = mapTypeName (bc.name)
         let typeEnum = "GDEXTENSION_VARIANT_TYPE_" + camelToSnake(bc.name).uppercased()
         
         
         var conformances: [String] = []
-        if kind == .isStruct {
+        if kind == .swiftStruct {
             conformances.append ("Equatable")
             conformances.append ("Hashable")
         } else {
@@ -624,7 +624,7 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
             doc (p, bc, bc.description)
         }
         
-        p ("public \(kind == .isStruct ? "struct" : "class") \(typeName)\(proto)") {
+        p ("public \(kind == .swiftStruct ? "struct" : "class") \(typeName)\(proto)") {
             if bc.name == "String" {
                 p("""
                 public required init(_ string: String) {
@@ -739,7 +739,7 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                 p ("/// The number of elements in the array")
                 p ("public var count: Int { Int (size()) }")
             }
-            if kind == .isClass {
+            if kind == .swiftClass {
                 let (storage, initialize) = getBuiltinStorage (bc.name)
                 p ("// Contains a binary blob where this type information is stored")
                 p ("public var content: ContentType\(initialize)")
@@ -790,7 +790,7 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                 p ("public var alpha: Float")
                 storedMembers = bc.members
             } else {
-                if kind == .isStruct, let memberOffsets = builtinMemberOffsets [bc.name] {
+                if kind == .swiftStruct, let memberOffsets = builtinMemberOffsets [bc.name] {
                     storedMembers = memberOffsets.compactMap({ m in
                         return bc.members?.first(where: { $0.name == m.member })
                     })
@@ -810,7 +810,7 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
             }
             generateBuiltinCtors (p, bc, bc.constructors, godotTypeName: bc.name, typeName: typeName, typeEnum: typeEnum, members: storedMembers)
             
-            generateBuiltinMethods(p, bc, bc.methods ?? [], typeName, typeEnum, isStruct: kind == .isStruct)
+            generateBuiltinMethods(p, bc, bc.methods ?? [], typeName, typeEnum, isStruct: kind == .swiftStruct)
             generateBuiltinOperators (p, bc, typeName: typeName)
             generateBuiltinConstants (p, bc, typeName: typeName)
             
@@ -860,7 +860,7 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
         case "int", "float", "bool":
             break
         default:
-            builtinGodotTypeNames [bc.name] = bc.members != nil ? .isStruct : .isClass
+            builtinGodotTypeNames [bc.name] = bc.members != nil ? .swiftStruct : .swiftClass
         }
     }
     
