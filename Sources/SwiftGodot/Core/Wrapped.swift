@@ -544,7 +544,7 @@ func frameworkTypeBindingFree (_ token: UnsafeMutableRawPointer?, _ instance: Un
 func invokeWrappedCallable(wrapperPtr: UnsafeMutableRawPointer?, pargs: UnsafePointer<UnsafeRawPointer?>?, argc: Int64, retPtr: UnsafeMutableRawPointer?, err: UnsafeMutablePointer<GDExtensionCallError>?) {
     guard let wrapperPtr else { return }
     
-    withArguments(pargs: pargs, argc: argc) { arguments in
+    withArguments(pArgs: pargs, count: argc) { arguments in
         wrapperPtr
             .assumingMemoryBound(to: CallableWrapper.self)
             .pointee
