@@ -33,7 +33,14 @@ public protocol Nameable {
 
 extension ClassInfo {
     /// A type alias referencing a class info function that can be registered.
-    public typealias ClassInfoFunction = (T) -> (borrowing Arguments) -> Variant
+    public typealias Method = (T) -> (borrowing Arguments) -> Variant
+//    public typealias Method = @convention(c) (UnsafeRawPointer?) -> () -> UnsafeRawPointer?
+    
+    /// pointer to Object.handle -> () -> pointer to Variant.content
+    public typealias Getter = @convention(c) (UnsafeRawPointer?) -> () -> UnsafeRawPointer?
+
+    /// pointer to Object.handle -> pointer to Variant.content -> Void
+    public typealias Setter = @convention(c) (UnsafeRawPointer?) -> (UnsafeRawPointer?) -> Void
 
     /// A type alias referencing a registerable int enum.
     public typealias RegisteredIntEnum = CaseIterable & Nameable & RawRepresentable<Int>
@@ -74,8 +81,8 @@ extension ClassInfo {
     /// - Parameter setter: The setter method the editor will call to set the property.
     public func registerCheckbox(named name: String,
                                  prefix: String? = nil,
-                                 getter: @escaping ClassInfoFunction,
-                                 setter: @escaping ClassInfoFunction) {
+                                 getter: @escaping Method,
+                                 setter: @escaping Method) {
         let registeredPrefix = prefix ?? "\(T.self)"
         let property = PropInfo(propertyType: .bool,
                                 propertyName: StringName("\(registeredPrefix)_\(name)"),
@@ -99,8 +106,8 @@ extension ClassInfo {
     public func registerEnum<Enum: RegisteredIntEnum>(named name: String,
                                                       for enumType: Enum.Type,
                                                       prefix: String? = nil,
-                                                      getter: @escaping ClassInfoFunction,
-                                                      setter: @escaping ClassInfoFunction) {
+                                                      getter: @escaping Method,
+                                                      setter: @escaping Method) {
         let registeredPrefix = prefix ?? "\(T.self)"
         let property = PropInfo(propertyType: .int,
                                 propertyName: StringName("\(registeredPrefix)_\(name)"),
@@ -130,8 +137,8 @@ extension ClassInfo {
     public func registerFilePicker(named name: String,
                                    allowedTypes: [String] = ["*"],
                                    prefix: String? = nil,
-                                   getter: @escaping ClassInfoFunction,
-                                   setter: @escaping ClassInfoFunction) {
+                                   getter: @escaping Method,
+                                   setter: @escaping Method) {
         let registeredPrefix = prefix ?? "\(T.self)"
         let fileExtensions = allowedTypes.map { "*.\($0)" }.joined(separator: ",")
         let property = PropInfo(propertyType: .string,
@@ -158,8 +165,8 @@ extension ClassInfo {
     public func registerFilePicker(named name: String,
                                    allowedTypes: [UTType],
                                    prefix: String? = nil,
-                                   getter: @escaping ClassInfoFunction,
-                                   setter: @escaping ClassInfoFunction) {
+                                   getter: @escaping Method,
+                                   setter: @escaping Method) {
         let registeredPrefix = prefix ?? "\(T.self)"
         let fileExtensions = allowedTypes.map(\.preferredFilenameExtension)
             .map { "*.\($0 ?? "*")" }
@@ -189,8 +196,8 @@ extension ClassInfo {
                             range: ClosedRange<Int>,
                             stride: Int = 1,
                             prefix: String? = nil,
-                            getter: @escaping ClassInfoFunction,
-                            setter: @escaping ClassInfoFunction) {
+                            getter: @escaping Method,
+                            setter: @escaping Method) {
         let registeredPrefix = prefix ?? "\(T.self)"
         let property = PropInfo(propertyType: .int,
                                 propertyName: StringName("\(registeredPrefix)_\(name)"),
@@ -212,8 +219,8 @@ extension ClassInfo {
     /// - Parameter setter: The setter method the editor will call to set the property.
     public func registerTextField(named name: String,
                                   prefix: String? = nil,
-                                  getter: @escaping ClassInfoFunction,
-                                  setter: @escaping ClassInfoFunction) {
+                                  getter: @escaping Method,
+                                  setter: @escaping Method) {
         let registeredPrefix = prefix ?? "\(T.self)"
         let property = PropInfo(propertyType: .string,
                                 propertyName: StringName("\(registeredPrefix)_\(name)"),
@@ -235,8 +242,8 @@ extension ClassInfo {
     /// - Parameter setter: The setter method the editor will call to set the property.
     public func registerTextView(named name: String,
                                  prefix: String? = nil,
-                                 getter: @escaping ClassInfoFunction,
-                                 setter: @escaping ClassInfoFunction) {
+                                 getter: @escaping Method,
+                                 setter: @escaping Method) {
         let registeredPrefix = prefix ?? "\(T.self)"
         let property = PropInfo(propertyType: .string,
                                 propertyName: StringName("\(registeredPrefix)_\(name)"),
@@ -258,8 +265,8 @@ extension ClassInfo {
     /// - Paramater setter: The setter method the editor will call to set the property.
     public func registerNodePath(named name: String,
                                  prefix: String? = nil,
-                                 getter: @escaping ClassInfoFunction,
-                                 setter: @escaping ClassInfoFunction) {
+                                 getter: @escaping Method,
+                                 setter: @escaping Method) {
         let registeredPrefix = prefix ?? "\(T.self)"
         let property = PropInfo(propertyType: .nodePath,
                                 propertyName: StringName("\(registeredPrefix)_\(name)"),
@@ -274,7 +281,7 @@ extension ClassInfo {
                          setter: StringName("\(registeredPrefix)_set_\(name)"))
     }
 
-    private func registerGetter(prefix: String, name: String, property: PropInfo, getter: @escaping ClassInfoFunction) {
+    private func registerGetter(prefix: String, name: String, property: PropInfo, getter: @escaping Method) {
         registerMethod(name: StringName("\(prefix)_get_\(name)"),
                        flags: .default,
                        returnValue: property,
@@ -282,7 +289,7 @@ extension ClassInfo {
                        function: getter)
     }
 
-    private func registerSetter(prefix: String, name: String, property: PropInfo, setter: @escaping ClassInfoFunction) {
+    private func registerSetter(prefix: String, name: String, property: PropInfo, setter: @escaping Method) {
         registerMethod(name: StringName("\(prefix)_set_\(name)"),
                        flags: .default,
                        returnValue: nil,

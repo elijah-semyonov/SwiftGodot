@@ -58,15 +58,13 @@ public class ClassInfo<T:Object> {
     }
     
     // Here so we can box the function pointer
-    struct FunctionInfo {
+    struct MethodUserData {
         var function: (T) -> (borrowing Arguments) -> Variant
         var retType: Variant.GType?
-        var ttype: T.Type
         
         init (_ function: @escaping (T) -> (borrowing Arguments) -> Variant, retType: Variant.GType) {
             self.function = function
             self.retType = retType
-            self.ttype = T.self
         }
     }
     
@@ -117,7 +115,7 @@ public class ClassInfo<T:Object> {
     ///  - returnValue: if nil, this method does not return a value, otherwise, the descritption of the return value as a PropInfo
     ///  - arguments: an array describing the parameters that this method takes
     ///  - function: this is a curried function that will be registered.   It will be invoked on the instance of your object
-    public func registerMethod (name: StringName, flags: MethodFlags, returnValue: PropInfo?, arguments: [PropInfo], function: @escaping (T) -> (borrowing Arguments) -> Variant) {
+    public func registerMethod (name methodName: StringName, flags: MethodFlags, returnValue: PropInfo?, arguments: [PropInfo], function: @escaping Method) {
         let argPtr = UnsafeMutablePointer<GDExtensionPropertyInfo>.allocate(capacity: arguments.count)
         defer { argPtr.deallocate() }
         let argMeta = UnsafeMutablePointer<GDExtensionClassMethodArgumentMetadata>.allocate(capacity: arguments.count)
@@ -133,15 +131,15 @@ public class ClassInfo<T:Object> {
         if let returnValue {
             retInfo = returnValue.makeNativeStruct()
         }
-        let userdata = UnsafeMutablePointer<FunctionInfo>.allocate(capacity: 1)
+        let userdata = UnsafeMutablePointer<MethodUserData>.allocate(capacity: 1)
         userdata.initialize(to: .init(function, retType: returnValue?.propertyType ?? .nil))
         
-        withUnsafeMutablePointer(to: &name.content) { namePtr in
+        withUnsafeMutablePointer(to: &methodName.content) { pMethodName in
             withUnsafeMutablePointer(to: &retInfo) { retInfoPtr in
             var info = GDExtensionClassMethodInfo (
-                name: namePtr,
+                name: pMethodName,
                 method_userdata: userdata,
-                call_func: bind_call,
+                call_func: callMethod,
                 ptrcall_func: nil, //ClassInfo.bind_call_ptr,
                 method_flags: UInt32 (flags.rawValue),
                 has_return_value: GDExtensionBool (returnValue != nil ? 1 : 0),
@@ -152,7 +150,7 @@ public class ClassInfo<T:Object> {
                 arguments_metadata: argMeta, // GDExtensionClassMethodArgumentMetadata
                 default_argument_count: 0,
                 default_arguments: nil) // GDExtensionVariantPtr)
-                withUnsafePointer(to: &self.name.content) { namePtr in
+                withUnsafePointer(to: &name.content) { namePtr in
                     gi.classdb_register_extension_class_method (library, namePtr, &info)
                 }
             }
@@ -245,16 +243,18 @@ public struct PropInfo: CustomDebugStringConvertible {
     }
 }
 
-func bind_call (_ udata: UnsafeMutableRawPointer?,
-                classInstance: UnsafeMutableRawPointer?,
-                variantArgs: UnsafePointer<UnsafeRawPointer?>?,
-                argc: Int64,
-                returnValue: UnsafeMutableRawPointer?,
-                r_error: UnsafeMutablePointer<GDExtensionCallError>?){
+func callMethod(
+    _ udata: UnsafeMutableRawPointer?,
+    classInstance: UnsafeMutableRawPointer?,
+    variantArgs: UnsafePointer<UnsafeRawPointer?>?,
+    argc: Int64,
+    returnValue: UnsafeMutableRawPointer?,
+    r_error: UnsafeMutablePointer<GDExtensionCallError>?
+){
     guard let udata else { return }
     guard let classInstance else { return }
         
-    let finfo = udata.assumingMemoryBound(to: ClassInfo.FunctionInfo.self).pointee
+    let finfo = udata.assumingMemoryBound(to: ClassInfo.MethodUserData.self).pointee
     let object = Unmanaged<Object>.fromOpaque(classInstance).takeUnretainedValue()
     
     let ret = withArguments(pargs: variantArgs, argc: argc) { arguments in
