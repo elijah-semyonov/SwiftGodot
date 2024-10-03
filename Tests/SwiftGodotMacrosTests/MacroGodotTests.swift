@@ -10,9 +10,8 @@ import SwiftSyntaxMacrosTestSupport
 import XCTest
 import SwiftGodotMacroLibrary
 
-// Note when editing: Xcode loves to change all indentation to be consistent as either tabs or spaces, but the macro expansion produces a mix.
-// I had to set Settings->Text Editing->Tab Key to "Inserts a Tab Character" in order to resolve this.
-// "Paste and Preserve Formatting" was also helpful.
+// Note when editing: open this file and files containing relevant code generation in some code editor showing spaces and tabs like VSCode, and ensure that all indentations are done using spaces.
+// Mixing the two make the tests fail because `assertMacroExpansion` compares the strings.
 
 final class MacroGodotTests: XCTestCase {
     let testMacros: [String: Macro.Type] = [

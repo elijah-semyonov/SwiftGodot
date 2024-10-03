@@ -37,10 +37,10 @@ extension ClassInfo {
 //    public typealias Method = @convention(c) (UnsafeRawPointer?) -> () -> UnsafeRawPointer?
     
     /// pointer to Object.handle -> () -> pointer to Variant.content
-    public typealias Getter = @convention(c) (UnsafeRawPointer?) -> () -> UnsafeRawPointer?
+    public typealias Getter = @convention(c) (UnsafeRawPointer) -> () -> UnsafeRawPointer?
 
     /// pointer to Object.handle -> pointer to Variant.content -> Void
-    public typealias Setter = @convention(c) (UnsafeRawPointer?) -> (UnsafeRawPointer?) -> Void
+    public typealias Setter = @convention(c) (UnsafeRawPointer) -> (UnsafeRawPointer) -> Void
 
     /// A type alias referencing a registerable int enum.
     public typealias RegisteredIntEnum = CaseIterable & Nameable & RawRepresentable<Int>

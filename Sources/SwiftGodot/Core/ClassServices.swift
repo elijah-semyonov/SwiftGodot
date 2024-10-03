@@ -244,17 +244,17 @@ public struct PropInfo: CustomDebugStringConvertible {
 }
 
 func callMethod(
-    _ udata: UnsafeMutableRawPointer?,
+    userData: UnsafeMutableRawPointer?,
     classInstance: UnsafeMutableRawPointer?,
     variantArgs: UnsafePointer<UnsafeRawPointer?>?,
     argc: Int64,
     returnValue: UnsafeMutableRawPointer?,
     r_error: UnsafeMutablePointer<GDExtensionCallError>?
 ){
-    guard let udata else { return }
+    guard let userData else { return }
     guard let classInstance else { return }
         
-    let finfo = udata.assumingMemoryBound(to: ClassInfo.MethodUserData.self).pointee
+    let finfo = userData.assumingMemoryBound(to: ClassInfo.MethodUserData.self).pointee
     let object = Unmanaged<Object>.fromOpaque(classInstance).takeUnretainedValue()
     
     let ret = withArguments(pargs: variantArgs, argc: argc) { arguments in
