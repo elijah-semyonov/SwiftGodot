@@ -4,7 +4,7 @@
 public struct Arguments: ~Copyable {
     enum Contents {
         struct UnsafeGodotArgs {
-            let pargs: UnsafePointer<UnsafeRawPointer?>
+            let pArgs: UnsafePointer<UnsafeRawPointer?>
             let count: Int
             
             var first: Variant {
@@ -17,7 +17,7 @@ public struct Arguments: ~Copyable {
                     return nil
                 }
                 
-                guard let ptr = pargs[index] else {
+                guard let ptr = pArgs[index] else {
                     return Variant()
                 }
                 
@@ -68,9 +68,9 @@ public struct Arguments: ~Copyable {
         contents = .array(array)
     }
     
-    init(pargs: UnsafePointer<UnsafeRawPointer?>?, argc: Int64) {
-        if let pargs, argc > 0 {
-            contents = .unsafeGodotArgs(.init(pargs: pargs, count: Int(argc)))
+    init(pArgs: UnsafePointer<UnsafeRawPointer?>?, count: Int64) {
+        if let pArgs, count > 0 {
+            contents = .unsafeGodotArgs(.init(pArgs: pArgs, count: Int(count)))
         } else {
             contents = .array([])
         }
@@ -96,8 +96,8 @@ public struct Arguments: ~Copyable {
 }
 
 /// Execute `body` and return the result of executing it taking temporary storage keeping Godot managed `Variant`s stored in `pargs`.
-func withArguments<T>(pargs: UnsafePointer<UnsafeRawPointer?>?, argc: Int64, _ body: (borrowing Arguments) -> T) -> T {
-    let arguments = Arguments(pargs: pargs, argc: argc)
+func withArguments<T>(pArgs: UnsafePointer<UnsafeRawPointer?>?, count: Int64, _ body: (borrowing Arguments) -> T) -> T {
+    let arguments = Arguments(pArgs: pArgs, count: count)
     let result = body(arguments)
     return result
 }

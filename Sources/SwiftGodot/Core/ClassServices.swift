@@ -7,6 +7,15 @@
 
 @_implementationOnly import GDExtension
 
+typealias UnsafeObjectHandlePointer = UnsafeRawPointer
+typealias UnsafeArgumentsPointer = UnsafePointer<UnsafeRawPointer?>?
+typealias UnsafeArgumentsCount = Int64
+
+struct MethodUserData {
+    let call: (UnsafeObjectHandlePointer, UnsafeArgumentsPointer, Int64)
+    let returnType: Variant.GType
+}
+
 /// Provides support to expose Swift methods and signals to the Godot runtime, making it callable
 /// from its runtime and scripting language.
 ///
@@ -257,7 +266,7 @@ func callMethod(
     let finfo = userData.assumingMemoryBound(to: ClassInfo.MethodUserData.self).pointee
     let object = Unmanaged<Object>.fromOpaque(classInstance).takeUnretainedValue()
     
-    let ret = withArguments(pargs: variantArgs, argc: argc) { arguments in
+    let ret = withArguments(pArgs: variantArgs, count: argc) { arguments in
         let bound = finfo.function(object)
         return bound(arguments)
     }
