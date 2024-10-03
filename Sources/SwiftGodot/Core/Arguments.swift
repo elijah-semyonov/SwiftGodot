@@ -8,16 +8,14 @@ public struct Arguments: ~Copyable {
             let count: Int
             
             var first: Variant {
-                if count > 0 {
-                    return retrieveVariant(at: 0)
-                } else {
-                    return nil
-                }
+                retrieveVariant(at: 0)
             }
             
             /// Lazily reconstruct variant at `index`
             func retrieveVariant(at index: Int) -> Variant {
-                precondition(index >= 0 && index < count, "Index \(index) out of bounds")
+                guard index >= 0 && index < count else {
+                    return nil
+                }
                 
                 guard let ptr = pargs[index] else {
                     return Variant()
@@ -86,6 +84,9 @@ public struct Arguments: ~Copyable {
         get {
             switch contents {
             case .array(let array):
+                guard index >= 0, index < array.count else {
+                    return nil
+                }
                 return array[index]
             case .unsafeGodotArgs(let args):
                 return args.retrieveVariant(at: index)
