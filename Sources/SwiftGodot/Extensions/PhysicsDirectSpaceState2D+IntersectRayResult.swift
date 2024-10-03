@@ -5,12 +5,10 @@
 //  Created by Estevan Hernandez on 06/24/24.
 //
 
-private extension GDictionary {
+extension GDictionary {
     func makeOrUnwrap<T: VariantStorable>(key: String) -> T? {
-        guard let variant = self[key] else {
-            GD.pushWarning("There was no Variant for key: \(key)")
-            return nil
-        }
+        let variant = self[key]
+        
         guard let result = T.makeOrUnwrap(variant) else {
             GD.pushWarning("\(T.self).makeOrUnwrap(\(variant)) was nil")
             return nil
@@ -36,13 +34,18 @@ extension PhysicsDirectSpaceState2D {
         /// The shape index of the colliding shape.
         public let shape: Int
         /// The metadata value from the dictionary.
-        public let metadata: Variant?
+        public let metadata: Variant
 
         init?(_ dictionary: GDictionary) {
+            guard !dictionary.isEmpty() else {
+                return nil
+            }
+                    
+            let colliderVariant = dictionary["collider"]
+            
             guard dictionary.isEmpty() == false,
                   let position: Vector2 = dictionary.makeOrUnwrap(key: "position"),
                   let normal: Vector2 = dictionary.makeOrUnwrap(key: "normal"),
-                  let colliderVariant = dictionary["collider"],
                   let collider = T.makeOrUnwrap(colliderVariant),
                   let colliderId: Int = dictionary.makeOrUnwrap(key: "collider_id"),
                   let rid: RID = dictionary.makeOrUnwrap(key: "rid"),

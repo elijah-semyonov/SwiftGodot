@@ -73,9 +73,9 @@ public class ObjectCollection<Element: Object>: Collection, ExpressibleByArrayLi
     }
     
     /// Converts a Variant to the strongly typed value T
-    func toStrong (_ v: Variant) -> Element {
-        var handle = UnsafeMutableRawPointer(bitPattern: 0)
-        v.toType(.object, dest: &handle)
+    func toStrong (_ variant: Variant) -> Element {
+        var handle: UnsafeMutableRawPointer?
+        variant.read(into: &handle, assumingType: .object)
         return lookupObject(nativeHandle: handle!)!
     }
     

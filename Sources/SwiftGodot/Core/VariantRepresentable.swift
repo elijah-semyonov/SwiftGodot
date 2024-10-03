@@ -43,12 +43,12 @@ public protocol SelfVariantRepresentable: VariantRepresentable where VariantCont
 extension SelfVariantRepresentable {
     public var content: VariantContent { self }
     
-    public init? (_ variant: Variant) {
+    public init?(_ variant: Variant) {
         guard Self.godotType == variant.gtype else { return nil }
         self.init()
         
-        withUnsafeMutablePointer(to: &self) { ptr in
-            variant.toType(Self.godotType, dest: ptr)
+        withUnsafeMutablePointer(to: &self) { dst in
+            variant.read(into: dst, assumingType: Self.godotType)
         }
     }
 }
@@ -68,9 +68,8 @@ extension ContentVariantRepresentable {
         guard Self.godotType == variant.gtype else { return nil }
         
         var content = Self.zero
-        withUnsafeMutablePointer(to: &content) { ptr in
-            // This copies the builtin's content out of the Variant and increments its internal retain count (if it has one).
-            variant.toType(Self.godotType, dest: ptr)
+        withUnsafeMutablePointer(to: &content) { dst in
+            variant.read(into: dst, assumingType: Self.godotType)
         }
         
         self.init(alreadyOwnedContent: content)

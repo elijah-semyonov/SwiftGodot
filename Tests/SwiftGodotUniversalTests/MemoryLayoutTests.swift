@@ -155,8 +155,7 @@ final class MemoryLayoutTests: XCTestCase {
         checker.assert (keyPath: \.z)
         checker.assert (keyPath: \.w)
         checker.assertCheck ()
-    }
-    
+    }    
 }
 
 // MARK: - Preparation
@@ -239,7 +238,6 @@ private extension MemoryLayoutTests {
             let uncheckedMembers = offsetMetadata.members.map({ $0.member }).filter({ !checkedMembers.contains($0) })
             XCTAssertEqual(uncheckedMembers, [], "Not all members were checked", file: file, line: line)
         }
-        
     }
     
     struct ExtensionMetadata {

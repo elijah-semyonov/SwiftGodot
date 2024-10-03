@@ -7,7 +7,7 @@ public struct Arguments: ~Copyable {
             let pargs: UnsafePointer<UnsafeRawPointer?>
             let count: Int
             
-            var first: Variant? {
+            var first: Variant {
                 if count > 0 {
                     return retrieveVariant(at: 0)
                 } else {
@@ -49,7 +49,7 @@ public struct Arguments: ~Copyable {
     /// The first argument.
     ///
     /// If the `Arguments` is empty, the value of this property is `nil`.
-    public var first: Variant? {
+    public var first: Variant {
         switch contents {
         case .unsafeGodotArgs(let contents):
             if contents.count > 0 {
@@ -58,7 +58,11 @@ public struct Arguments: ~Copyable {
                 return nil
             }
         case .array(let array):
-            return array.first
+            if let first = array.first {
+                return first
+            } else {
+                return nil
+            }
         }
     }
     

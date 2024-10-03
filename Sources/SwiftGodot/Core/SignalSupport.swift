@@ -41,8 +41,8 @@ public class SignalProxy: Object {
         super.init (nativeHandle: nativeHandle)
     }
     
-    func proxyFunc (args: borrowing Arguments) -> Variant? {
-        proxy? (args)
+    func proxyFunc(args: borrowing Arguments) -> Variant {
+        proxy?(args)
         return nil
     }
 }

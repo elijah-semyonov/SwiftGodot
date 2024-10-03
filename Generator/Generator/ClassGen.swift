@@ -540,7 +540,7 @@ func generateSignalType (_ p: Printer, _ cdef: JGodotExtensionAPIClass, _ signal
             
             if let _ = classMap [arg.type] {
                 argUnwrap += "var ptr_\(argIdx): UnsafeMutableRawPointer?\n"
-                argUnwrap += "args [\(argIdx)].toType (Variant.GType.object, dest: &ptr_\(argIdx))\n"
+                argUnwrap += "args [\(argIdx)].read(into: &ptr_\(argIdx), assumingType: .object)\n"
                 let handleResolver: String
                 if hasSubclasses.contains(cdef.name) {
                     // If the type we are bubbling up has subclasses, we want to create the most

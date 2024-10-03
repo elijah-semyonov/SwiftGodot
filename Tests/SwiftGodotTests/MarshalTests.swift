@@ -119,5 +119,16 @@ final class MarshalTests: GodotTestCase {
         XCTAssertEqual(true, wrapBool (true))
         XCTAssertEqual(false, wrapBool (false))
     }
+    
+    func testUnsafeOperationsAssumptions() {
+        XCTAssertEqual(UnsafeRawPointer(bitPattern: 0), nil)
+    }
+    
+    func testVariantZeroSameAsVariantNewNil() {
+        var content = Variant.zero
+        gi.variant_new_nil(&content)
+        
+        XCTAssertEqual(Variant.zero, content)
+    }
 }
 

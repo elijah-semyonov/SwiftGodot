@@ -560,7 +560,7 @@ func generateMethod(_ p: Printer, method: MethodDefinition, className: String, c
                 if godotReturnType == "String" {
                     return "let _result = GString()"
                 } else {
-                    return "var _result: Variant.ContentType = Variant.zero"
+                    return "var _result = Variant.zero"
                 }
             } else if godotReturnType.starts(with: "typedarray::") {
                 let (storage, initialize) = getBuiltinStorage ("Array")
@@ -724,7 +724,7 @@ func generateMethod(_ p: Printer, method: MethodDefinition, className: String, c
             if returnType != "" {
                 p(returnTypeDecl())
             } else if (method.isVararg) {
-                p("var _result: Variant.ContentType = Variant.zero")
+                p("var _result = Variant.zero")
             }
             
             let instanceArg: String

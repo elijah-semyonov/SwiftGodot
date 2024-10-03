@@ -59,11 +59,11 @@ public class ClassInfo<T:Object> {
     
     // Here so we can box the function pointer
     struct FunctionInfo {
-        var function: (T) -> (borrowing Arguments) -> Variant?
+        var function: (T) -> (borrowing Arguments) -> Variant
         var retType: Variant.GType?
         var ttype: T.Type
         
-        init (_ function: @escaping (T) -> (borrowing Arguments) -> Variant?, retType: Variant.GType?) {
+        init (_ function: @escaping (T) -> (borrowing Arguments) -> Variant, retType: Variant.GType) {
             self.function = function
             self.retType = retType
             self.ttype = T.self
@@ -95,7 +95,7 @@ public class ClassInfo<T:Object> {
     ///     let _ = initClass ()
     ///   }
     ///
-    ///   func checkBaddies (args: borrowing Arguments) -> Variant? {
+    ///   func checkBaddies (args: borrowing Arguments) -> Variant {
     ///     // We are getting one integer if called from Godot of type Int
     ///     // validate in case you called this directly from Swift
     ///     guard args.count > 0 else {
@@ -117,7 +117,7 @@ public class ClassInfo<T:Object> {
     ///  - returnValue: if nil, this method does not return a value, otherwise, the descritption of the return value as a PropInfo
     ///  - arguments: an array describing the parameters that this method takes
     ///  - function: this is a curried function that will be registered.   It will be invoked on the instance of your object
-    public func registerMethod (name: StringName, flags: MethodFlags, returnValue: PropInfo?, arguments: [PropInfo], function: @escaping (T) -> (borrowing Arguments) -> Variant?) {
+    public func registerMethod (name: StringName, flags: MethodFlags, returnValue: PropInfo?, arguments: [PropInfo], function: @escaping (T) -> (borrowing Arguments) -> Variant) {
         let argPtr = UnsafeMutablePointer<GDExtensionPropertyInfo>.allocate(capacity: arguments.count)
         defer { argPtr.deallocate() }
         let argMeta = UnsafeMutablePointer<GDExtensionClassMethodArgumentMetadata>.allocate(capacity: arguments.count)
@@ -134,7 +134,7 @@ public class ClassInfo<T:Object> {
             retInfo = returnValue.makeNativeStruct()
         }
         let userdata = UnsafeMutablePointer<FunctionInfo>.allocate(capacity: 1)
-        userdata.initialize(to: .init(function, retType: returnValue?.propertyType))
+        userdata.initialize(to: .init(function, retType: returnValue?.propertyType ?? .nil))
         
         withUnsafeMutablePointer(to: &name.content) { namePtr in
             withUnsafeMutablePointer(to: &retInfo) { retInfoPtr in
@@ -262,24 +262,22 @@ func bind_call (_ udata: UnsafeMutableRawPointer?,
         return bound(arguments)
     }
 
-    if let returnValue, let ret {
-        if ret.gtype != finfo.retType {
-            print ("Your declared function should return the type originally set \(String(describing: finfo.retType)) and \(ret.gtype)")
-            if let rError = r_error {
-                rError.pointee.error = GDEXTENSION_CALL_ERROR_INVALID_METHOD
-            }
-            return
+    if ret.gtype != finfo.retType {
+        print ("Your declared function should return the type originally set \(String(describing: finfo.retType)) and \(ret.gtype)")
+        if let rError = r_error {
+            rError.pointee.error = GDEXTENSION_CALL_ERROR_INVALID_METHOD
         }
-        let retContent = returnValue.assumingMemoryBound(to: Variant.ContentType.self)
-        retContent.pointee = ret.content
-        
-        // Since we are giving control to Godot of this variant, we need to make sure that
-        // the destructor does not get invoked here.
-        //
-        // Another instance of the problem fixed here:
-        // 5deb4affbc9cbaa7ca86066cac4a9d87f33e60e6
-        ret.content = Variant.zero
+        return
     }
+    let retContent = returnValue?.assumingMemoryBound(to: Variant.ContentType.self)
+    retContent?.pointee = ret.content
+    
+    // Since we are giving control to Godot of this variant, we need to make sure that
+    // the destructor does not get invoked here.
+    //
+    // Another instance of the problem fixed here:
+    // 5deb4affbc9cbaa7ca86066cac4a9d87f33e60e6
+    ret.content = Variant.zero
 }
 
 func bind_call_ptr () {

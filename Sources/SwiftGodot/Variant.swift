@@ -12,6 +12,13 @@
 /// pesky scenario.
 public var experimentalDisableVariantUnref = false
 
+/// 24-bytes payload of ``Variant`` in `float_64` configuration
+struct GodotContent24: Equatable {
+    let w0: UInt64
+    let w1: UInt64
+    let w2: UInt64
+}
+
 /// Variant objects box various Godot Objects, you create them with one of the
 /// constructors, and you can retrieve the contents using the various extension
 /// constructors that are declared on the various types that are wrapped.
@@ -42,7 +49,7 @@ public var experimentalDisableVariantUnref = false
 ///
 /// Modifications to a container will modify all references to it.
 
-public class Variant: Hashable, Equatable, CustomDebugStringConvertible {
+public class Variant: Hashable, Equatable, CustomDebugStringConvertible, ExpressibleByNilLiteral {
     static var fromTypeMap: [GDExtensionVariantFromTypeConstructorFunc] = {
         var map: [GDExtensionVariantFromTypeConstructorFunc] = []
         
@@ -63,15 +70,21 @@ public class Variant: Hashable, Equatable, CustomDebugStringConvertible {
         return map
     }()
     
-    typealias ContentType = (Int, Int, Int)
-    var content: ContentType = (0, 0, 0)
-    static var zero: ContentType = (0, 0, 0)
+    typealias ContentType = GodotContent24
+    static let zero = ContentType(w0: 0, w1: 0, w2: 0)
+    
+    var content = Variant.zero
     
     /// Initializes from the raw contents of another Variant, this will make a copy of the variant contents
     init(copying otherContent: ContentType) {
         withUnsafePointer(to: otherContent) { src in
             gi.variant_new_copy(&content, src)
         }
+    }
+    
+    /// Allow expressions like `let variant: Variant = nil`
+    public required convenience init(nilLiteral: Void) {
+        self.init()
     }
     
     /// Initializes using `ContentType` and assuming that this `Variant` is sole owner of this content now.
@@ -85,10 +98,8 @@ public class Variant: Hashable, Equatable, CustomDebugStringConvertible {
     }
     
     /// Creates an empty Variant, that represents the Godot type `nil`
-    public init () {
-        withUnsafeMutablePointer(to: &content) { ptr in
-            gi.variant_new_nil (ptr)
-        }
+    public init() {
+        // no-op
     }
 
     /// Compares two variants, does this by delegating the comparison to Godot
@@ -142,10 +153,20 @@ public class Variant: Hashable, Equatable, CustomDebugStringConvertible {
         return GType (rawValue: Int64 (gi.variant_get_type (&copy).rawValue)) ?? .nil
     }
     
-    func toType (_ type: GType, dest: UnsafeMutableRawPointer) {
-        withUnsafeMutablePointer(to: &content) { selfPtr in
-            Variant.toTypeMap [Int (type.rawValue)] (dest, selfPtr)
+    /// Extract the content of this Variant into a value pointed by `dst`, assuming this ``Variant`` contains ``GType`` equal to `gtype` and the
+    /// `dst` is pointing at the storage compatible with this `gtype`.
+    /// `dst` pointee is unowned content, so the caller should take the ownership over it.
+    func read(into dst: UnsafeMutableRawPointer, assumingType gtype: GType) {
+        withUnsafeMutablePointer(to: &content) { src in
+            Variant.toTypeMap[Int (gtype.rawValue)](dst, src)
         }
+    }
+    
+    /// Return true if this ``Variant`` contains  Godot `Nil` (`gtype == .nil`)
+    public var isNil: Bool {
+        // Hard-coded and works on assumption that `gi.variant_new_nil` is the same as `Self.zero` and doesn't have
+        // additional logic on Godot side
+        content == Variant.zero
     }
     
     /// Returns true if the variant is flagged as being an object (`gtype == .object`) and it has a nil pointer.
@@ -165,12 +186,14 @@ public class Variant: Hashable, Equatable, CustomDebugStringConvertible {
         guard gtype == .object else {
             return nil
         }
-        var value: UnsafeRawPointer = UnsafeRawPointer(bitPattern: 1)!
-        toType(.object, dest: &value)
-        if value == UnsafeRawPointer(bitPattern: 0) {
+        var handle: UnsafeRawPointer?
+        read(into: &handle, assumingType: .object)
+        
+        guard let handle else {
             return nil
         }
-        let ret: T? = lookupObject(nativeHandle: value)
+        
+        let ret: T? = lookupObject(nativeHandle: handle)
         return ret
     }
     
@@ -270,30 +293,26 @@ public class Variant: Hashable, Equatable, CustomDebugStringConvertible {
     
     /// Variants that represent arrays can be indexed, this subscript allows you to fetch the individual elements of those arrays
     ///
-    public subscript (index: Int) -> Variant? {
+    public subscript(index: Int) -> Variant {
         get {
-            var copy_content = content
-            var _result: Variant.ContentType = Variant.zero
+            var result = Variant.zero
             var valid: GDExtensionBool = 0
             var oob: GDExtensionBool = 0
             
-            gi.variant_get_indexed(&copy_content, Int64(index), &_result, &valid, &oob)
+            gi.variant_get_indexed(&content, Int64(index), &result, &valid, &oob)
             if valid == 0 || oob != 0 {
                 return nil
             }
                         
-            return Variant(takingOver: _result)
+            return Variant(takingOver: result)
         }
         set {
-            guard let newValue else {
-                return
-            }
-            var copy_content = content
-            var newV = newValue.content
+            var newValueContent = newValue.content
+            
             var valid: GDExtensionBool = 0
             var oob: GDExtensionBool = 0
 
-            gi.variant_set_indexed (&copy_content, Int64(index), &newV, &valid, &oob)
+            gi.variant_set_indexed(&content, Int64(index), &newValueContent, &valid, &oob)
         }
     }
     

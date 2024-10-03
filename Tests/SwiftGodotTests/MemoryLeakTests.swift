@@ -279,9 +279,9 @@ class GodotEncoder: Encoder {
     class GodotSingleValueContainer: SingleValueEncodingContainer, GodotEncodingContainer {
         func encode<T>(_ value: T) throws where T : Encodable {
             if value is Array<Any> {
-                var container = GodotUnkeyedContainer (codingPath: codingPath, userInfo: userInfo)
+                let container = GodotUnkeyedContainer (codingPath: codingPath, userInfo: userInfo)
                 try container.encode(value)
-                self.value = container.data
+                self.data = container.data
             } else if let i = value as? Int {
                 try self.encode(i)
             } else if let str = value as? String {
@@ -289,7 +289,7 @@ class GodotEncoder: Encoder {
             } else {
                 var nested = GodotEncoder()
                 try value.encode(to: nested)
-                self.value = nested.container?.data
+                self.data = nested.container?.data ?? Variant()
             }
         }
 
@@ -299,15 +299,12 @@ class GodotEncoder: Encoder {
 
         var codingPath: [any CodingKey] = []
         var userInfo: [CodingUserInfoKey: Any]
-        var value: Variant?
-
-        var data: Variant {
-            value ?? Variant()
-        }
+        var data: Variant
 
         init (codingPath: [any CodingKey], userInfo: [CodingUserInfoKey: Any]) {
             self.codingPath = codingPath
             self.userInfo = userInfo
+            data = Variant()
         }
 
         func encodeNil() throws {
@@ -319,7 +316,7 @@ class GodotEncoder: Encoder {
         }
 
         func encode(_ value: String) throws {
-            self.value = Variant(value)
+            data = Variant(value)
         }
 
         func encode(_ value: Double) throws {
@@ -331,7 +328,7 @@ class GodotEncoder: Encoder {
         }
 
         func encode(_ value: Int) throws {
-            self.value = Variant(Int(value))
+            data = Variant(Int(value))
         }
 
         func encode(_ value: Int8) throws {
