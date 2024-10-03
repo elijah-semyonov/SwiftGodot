@@ -820,7 +820,7 @@ final class MacroGodotTests: XCTestCase {
                 var goodName: String = "Supertop"
             
                 func _mproxy_set_goodName (args: borrowing Arguments) -> Variant {
-                    let arg = args.first            
+                    let arg = args.first
                     if let value = String (arg) {
                         self.goodName = value
                     } else {
