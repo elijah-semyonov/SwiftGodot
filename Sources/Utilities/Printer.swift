@@ -18,8 +18,11 @@ public class Printer {
         }
     }
     
+    let defaultSuffix: String
+    
     public init(name: String) {
         self.name = name
+        self.defaultSuffix = "\n"
     }
 
     public func preamble () {
@@ -57,26 +60,11 @@ public class Printer {
     
     // Prints a variable definition
     public func staticVar (visibility: String = "", name: String, type: String, block: () -> ()) {
-        p ("fileprivate static var _c_\(name): \(type)? = nil")
-        p ("fileprivate static var _g_\(name): UInt16 = 0")
-        b ("\(visibility)static var \(name): \(type) ") {
-            self ("if _g_\(name) == swiftGodotLibraryGeneration") {
-                self ("if let _c_\(name)") {
-                    self ("return _c_\(name)")
-                }
-            }
-            p ("_g_\(name) = swiftGodotLibraryGeneration")
-            self ("func load () -> \(type)") {
-                block ()
-            }
-            self ("let ret = load ()")
-            self ("_c_\(name) = ret")
-            self ("return ret")
-        }
+        b ("\(visibility)static let \(name): \(type) =", suffix: "()\n", block: block)
     }
 
     // Prints a block, automatically indents the code in the closure
-    public func b (_ str: String, arg: String? = nil, suffix: String = "", block: () -> ()) {
+    public func b (_ str: String, arg: String? = nil, suffix: String = "\n", block: () -> ()) {
         p (str + " {" + (arg ?? ""))
         indent += 1
         let saved = indent
@@ -85,14 +73,14 @@ public class Printer {
             print ("Indentation out of sync, the nested block messed with indentation")
         }
         indent -= 1
-        p ("}\(suffix)\n")
+        p ("}\(suffix)")
     }
 
     public func callAsFunction(_ str: String) {
         p (str)
     }
     
-    public func callAsFunction(_ str: String, arg: String? = nil, suffix: String = "", block: () -> ()) {
+    public func callAsFunction(_ str: String, arg: String? = nil, suffix: String = "\n", block: () -> ()) {
         b (str, arg: arg, suffix: suffix, block: block)
     }
 }

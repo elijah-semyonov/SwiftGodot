@@ -15,6 +15,7 @@ import SwiftDiagnostics
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
+import Utilities
 
 struct GodotMacroProcessedType {
     let initializer: String
@@ -23,6 +24,7 @@ struct GodotMacroProcessedType {
 
 class GodotMacroProcessor {
     var propertyDeclarations: [PropertyDeclarationKey: String] = [:]
+    
     struct PropertyDeclarationKey: Hashable {
         let typeName: String
         let parameterElementTypeName: String?
@@ -38,6 +40,7 @@ class GodotMacroProcessor {
     }
     
     let classDecl: ClassDeclSyntax
+    let descriptorPrinter = Printer(name: "descriptor")
     let className: String
     
     init (classDecl: ClassDeclSyntax) {
@@ -419,13 +422,12 @@ class GodotMacroProcessor {
     var genMethods: [String] = []
     
     func processType () throws -> GodotMacroProcessedType {
-        ctor =
-    """
-    private static let _initializeClass: Void = {
-        let className = StringName("\(className)")
-        assert(ClassDB.classExists(class: className))
-        let classInfo = ClassInfo<\(className)> (name: className)\n
-    """
+        ctor = """
+        private static let _initializeClass: Void = {
+            let className = StringName("\(className)")
+            assert(ClassDB.classExists(class: className))
+            let classInfo = ClassInfo<\(className)> (name: className)\n
+        """
         var previousGroupPrefix: String? = nil
         var previousSubgroupPrefix: String? = nil
         var needTrycase = false
@@ -455,18 +457,28 @@ class GodotMacroProcessor {
             }
         }
         if needTrycase {
-            ctor.append (
-            """
-            func tryCase <T : RawRepresentable & CaseIterable> (_ type: T.Type) -> GString {
-                GString (type.allCases.map { v in "\\(v):\\(v.rawValue)" }.joined(separator: ","))
-            }
-            func tryCase <T : RawRepresentable> (_ type: T.Type) -> String { "" }
-            """)
+            ctor.append("""
+                func tryCase <T : RawRepresentable & CaseIterable> (_ type: T.Type) -> GString {
+                    GString (type.allCases.map { v in "\\(v):\\(v.rawValue)" }.joined(separator: ","))
+                }
+                func tryCase <T : RawRepresentable> (_ type: T.Type) -> String { "" }
+                """
+            )
         }
         ctor.append("} ()\n")
         
+        let p = descriptorPrinter
+        p("override class var classDescriptor: ExtensionClassDescriptor") {
+            p("""
+            ExtensionClassDescriptor(
+                name: "\(className)",
+                methods: []
+            )
+            """)
+        }
         
-        return .init(initializer: ctor, descriptor: "")
+        
+        return .init(initializer: ctor, descriptor: p.result)
     }
 
 }
