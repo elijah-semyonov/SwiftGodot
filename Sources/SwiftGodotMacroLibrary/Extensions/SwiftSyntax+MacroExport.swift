@@ -183,6 +183,20 @@ private extension TypeSyntax {
 }
 
 extension FunctionDeclSyntax {
+    var hasCallableMacro: Bool {
+        let match = attributes.contains {
+            guard case let .attribute(attribute) = $0 else {
+                return false
+            }
+            
+            let name = attribute.attributeName.as(IdentifierTypeSyntax.self)?.name.text
+            
+            return name == "Callable"
+        }
+        
+        return match
+    }
+    
     var isReturnedTypeSwiftArray: Bool {
         signature
             .returnClause?
