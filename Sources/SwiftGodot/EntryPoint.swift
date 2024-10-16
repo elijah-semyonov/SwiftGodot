@@ -390,13 +390,3 @@ public func initializeSwiftModule (
     initialization.pointee.minimum_initialization_level = GDEXTENSION_INITIALIZATION_SCENE
     initialization.pointee.userdata = UnsafeMutableRawPointer(libraryPtr)
 }
-
-/*
- Cannot assign value of type 'UnsafePointer<GDExtensionInterfaceVariantGetPtrConstructor>'  to type 'GDExtensionInterfaceVariantGetPtrConstructor'
- 
- (aka '@convention(c) (GDExtensionVariantType, Int32) -> Optional<@convention(c) (Optional<UnsafeMutableRawPointer>, Optional<UnsafePointer<Optional<UnsafeRawPointer>>>) -> ()>')
- */
-
-func withArgPointers(_ _args: UnsafeMutableRawPointer?..., body: ([UnsafeRawPointer?]) -> Void) {
-    body(unsafeBitCast(_args, to: [UnsafeRawPointer?].self))
-}
