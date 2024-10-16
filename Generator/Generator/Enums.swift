@@ -7,6 +7,7 @@
 
 import Foundation
 import ExtensionApi
+import Utilities
 
 // The name of the form 'bitfield::'
 func findEnumDef (name: String) -> JGodotGlobalEnumElement? {

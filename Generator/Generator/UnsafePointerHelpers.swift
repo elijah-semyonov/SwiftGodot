@@ -1,5 +1,6 @@
 import SwiftSyntax
 import SwiftSyntaxBuilder
+import Utilities
 
 /// Generate methods to help marshaling arguments to Godot while keeping things civil and on stack
 func generateUnsafePointerHelpers(_ p: Printer) {

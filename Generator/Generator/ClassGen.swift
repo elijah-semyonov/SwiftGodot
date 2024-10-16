@@ -7,6 +7,7 @@
 
 import Foundation
 import ExtensionApi
+import Utilities
 
 // Populated with the types loaded from the api.json, we assume they are all reference types
 // anything else is not
