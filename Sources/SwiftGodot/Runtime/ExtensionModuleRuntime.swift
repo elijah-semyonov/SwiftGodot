@@ -5,12 +5,10 @@
 //  Created by Elijah Semyonov on 16/10/2024.
 //
 
-public class ExtensionModuleRuntime {
+public final class ExtensionModuleRuntime {
     private var classes: [String: ExtensionClassDescriptor] = [:]
     
-    public init() {
-        
-    }
+    static let shared = ExtensionModuleRuntime()
     
     public func addClass(decriptedBy descriptor: ExtensionClassDescriptor) {
         if classes[descriptor.name] != nil {
