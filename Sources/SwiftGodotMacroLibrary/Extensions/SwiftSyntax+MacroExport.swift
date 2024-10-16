@@ -242,3 +242,24 @@ extension FunctionParameterSyntax {
         return type.objectCollectionElementTypeName
     }
 }
+
+extension ClassDeclSyntax {
+    /// Return all functions of this class
+    var functions: [FunctionDeclSyntax] {
+        memberBlock.members.compactMap { member in
+            member.decl.as(FunctionDeclSyntax.self)
+        }
+    }
+}
+
+extension [FunctionDeclSyntax] {
+    /// Filter array keeping the function that have names starting with `_`
+    func filterPrefixedWithUnderscore() -> Self {
+        filter { $0.name.text.starts(with: "_") }
+    }
+    
+    /// Filter array keeping the function that have an `override` modifier
+    func filterOverriding() -> Self {
+        filter { $0.modifiers.contains(where: { $0.name.text == "override" }) == true }
+    }
+}

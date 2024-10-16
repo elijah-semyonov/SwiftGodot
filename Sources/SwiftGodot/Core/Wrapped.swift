@@ -266,6 +266,10 @@ open class Wrapped: Equatable, Identifiable, Hashable {
     }
     
     open class var classInitializer: Void { () }
+    
+    open class var classDescriptor: ExtensionClassDescriptor {
+        fatalError("`classDescriptor` must be overridden")
+    }
 }
     
 func bindGodotInstance(instance: some Wrapped, handle: UnsafeRawPointer) {
