@@ -16,6 +16,11 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
+struct GodotMacroProcessedType {
+    let initializer: String
+    let descriptor: String
+}
+
 class GodotMacroProcessor {
     var propertyDeclarations: [PropertyDeclarationKey: String] = [:]
     struct PropertyDeclarationKey: Hashable {
@@ -413,7 +418,7 @@ class GodotMacroProcessor {
     var ctor: String = ""
     var genMethods: [String] = []
     
-    func processType () throws -> String {
+    func processType () throws -> GodotMacroProcessedType {
         ctor =
     """
     private static let _initializeClass: Void = {
@@ -459,7 +464,9 @@ class GodotMacroProcessor {
             """)
         }
         ctor.append("} ()\n")
-        return ctor
+        
+        
+        return .init(initializer: ctor, descriptor: "")
     }
 
 }
@@ -548,7 +555,7 @@ public struct GodotMacro: MemberMacro {
         
         let processor = GodotMacroProcessor(classDecl: classDecl)
         do {
-            let classInit = try processor.processType()
+            let processedType = try processor.processType()
 
             let isFinal = classDecl.modifiers
                 .map(\.name.tokenKind)
@@ -565,7 +572,7 @@ public struct GodotMacro: MemberMacro {
             """
             )
             
-            var decls = [classInitProperty, DeclSyntax(stringLiteral: classInit)]
+            var decls = [classInitProperty, DeclSyntax(stringLiteral: processedType.initializer)]
 
             // Now look for overrides of Godot functions
             let functions = classDecl.functions                        
