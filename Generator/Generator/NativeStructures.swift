@@ -7,6 +7,7 @@
 
 import Foundation
 import ExtensionApi
+import Utilities
 
 enum NativeMapType {
     case straight

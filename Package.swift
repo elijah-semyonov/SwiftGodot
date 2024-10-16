@@ -55,6 +55,10 @@ products.append(
 #endif
 
 var targets: [Target] = [
+    // This contains code that is used by both compile-time Generator and SwiftGodot library
+    .target(
+        name: "Utilities"
+    ),
     // This contains GDExtension's JSON API data models
     .target(
         name: "ExtensionApi",
@@ -71,6 +75,7 @@ var targets: [Target] = [
     .executableTarget(
         name: "Generator",
         dependencies: [
+            "Utilities",
             "ExtensionApi",
             .product(name: "SwiftSyntax", package: "swift-syntax"),
             .product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
@@ -193,7 +198,7 @@ targets.append(contentsOf: [
     // a better Swift experience
     .target(
         name: "SwiftGodot",
-        dependencies: ["GDExtension"],
+        dependencies: ["GDExtension", "Utilities"],
         //linkerSettings: linkerSettings,
         swiftSettings: [
             .define("CUSTOM_BUILTIN_IMPLEMENTATIONS")
