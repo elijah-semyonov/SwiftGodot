@@ -568,10 +568,10 @@ public struct GodotMacro: MemberMacro {
             var decls = [classInitProperty, DeclSyntax(stringLiteral: classInit)]
 
             // Now look for overrides of Godot functions
-            let functions = classDecl.memberBlock.members
-                        .compactMap { $0.decl.as(FunctionDeclSyntax.self) }
-                        .filter { $0.name.text.starts(with: "_") }
-                        .filter { $0.modifiers.contains(where: { $0.name.text == "override" }) == true }
+            let functions = classDecl.functions                        
+                .filterPrefixedWithUnderscore()
+                .filterOverriding()
+                        
             if functions.count > 0 {
                 let stringNames = functions.map { function in
                     let functionName = function.name.text
