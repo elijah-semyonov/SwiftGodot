@@ -176,9 +176,10 @@ class GodotMacroProcessor {
     
     // Processes a function
     func processFunction (_ funcDecl: FunctionDeclSyntax) throws {
-        guard hasCallableAttribute(funcDecl.attributes) else {
+        guard funcDecl.hasCallableMacro else {
             return
         }
+        
         let funcName = funcDecl.name.text
         var funcArgs = ""
         var retProp: String? = nil
@@ -584,7 +585,7 @@ public struct GodotMacro: MemberMacro {
             """
             )
             
-            var decls = [classInitProperty, DeclSyntax(stringLiteral: processedType.initializer)]
+            var decls = [classInitProperty, DeclSyntax(stringLiteral: processedType.initializer), DeclSyntax(stringLiteral: processedType.descriptor)]
 
             // Now look for overrides of Godot functions
             let functions = classDecl.functions                        

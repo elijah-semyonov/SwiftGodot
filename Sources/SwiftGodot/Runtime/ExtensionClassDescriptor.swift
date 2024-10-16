@@ -5,17 +5,17 @@
 //  Created by Elijah Semyonov on 16/10/2024.
 //
 
-public struct ExtensionClassMethod {
-    
-}
-
 public struct ExtensionClassDescriptor {
-    let name: String
-    let methods: [ExtensionClassMethod]
+    public struct Method {
+        let name: String
+    }
+    
+    public let name: String
+    public let methods: [Method]
     
     public init(
         name: String,
-        methods: [ExtensionClassMethod]
+        methods: [Method]
     ) {
         self.name = name
         self.methods = methods
