@@ -111,6 +111,7 @@ targets.append(contentsOf: [
     // third party projects
     .macro(name: "SwiftGodotMacroLibrary",
            dependencies: [
+            "Utilities",
             .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
             .product(name: "SwiftSyntax", package: "swift-syntax"),
             .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
