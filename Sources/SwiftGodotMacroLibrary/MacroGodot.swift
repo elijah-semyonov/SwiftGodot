@@ -473,7 +473,7 @@ class GodotMacroProcessor {
             p("""
             ExtensionClassDescriptor(
                 name: "\(className)",
-                methods: []
+                properties: []
             )
             """)
         }
