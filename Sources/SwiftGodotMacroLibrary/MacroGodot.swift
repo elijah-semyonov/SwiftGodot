@@ -469,7 +469,7 @@ class GodotMacroProcessor {
         ctor.append("} ()\n")
         
         let p = descriptorPrinter
-        p("override class var classDescriptor: ExtensionClassDescriptor") {
+        p("public override class var classDescriptor: ExtensionClassDescriptor") {
             p("""
             ExtensionClassDescriptor(
                 name: "\(className)",

@@ -24,6 +24,8 @@ class SwiftSprite: Sprite2D {
     var time_passed: Double = 0
     var count: Int = 0
     
+    #exportGroup("Lol", prefix: "dem")
+    
     #signal("picked_up_item", arguments: ["kind": String.self, "isGroovy": Bool.self, "count": Int.self])
     #signal("scored")
     #signal("lives_changed", arguments: ["count": Int.self])
@@ -51,7 +53,7 @@ class SwiftSprite: Sprite2D {
         }
         return nil
     }
-    
+        
     @Export var resource: Resource?
     @Export(.dir) var directory: String?
     @Export(.file, "*txt") var file: String?
