@@ -170,7 +170,7 @@ class GodotMacroProcessor {
     }
     
     func processExportSubgroup(name: String, prefix: String) {
-        members.append(".subgroup(name: name, prefix: prefix)")
+        members.append(".subgroup(name: \(name), prefix: \(prefix)")
         
         ctor.append(
             """
@@ -489,6 +489,7 @@ class GodotMacroProcessor {
         \(members)
                 ]
             )
+        }
         """
         
         return .init(initializer: ctor, descriptor: descriptor)
