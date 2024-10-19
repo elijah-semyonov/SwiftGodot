@@ -171,8 +171,20 @@ final class Demo21: Node {
 
 @Godot
 class SomeNode: Node {
+    #signal("lala")
+    
+    #signal("lalalala", arguments: [
+        "string": String.self,
+        "int": Int.self
+    ])
+    
     @Callable
     func printNames(of nodes: ObjectCollection<Node>) {
+        nodes.forEach { print($0?.name ?? "") }
+    }
+    
+    @Callable
+    static func printOther(of nodes: ObjectCollection<Node>) {
         nodes.forEach { print($0?.name ?? "") }
     }
     
