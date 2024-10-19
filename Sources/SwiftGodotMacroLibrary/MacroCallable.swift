@@ -14,8 +14,9 @@ import SwiftSyntaxMacros
 
 public struct GodotCallable: PeerMacro {
     static func process (funcDecl: FunctionDeclSyntax) throws -> String {
+        let staticModifierOrNothing = funcDecl.hasStaticModifier ? "static " : ""
         let funcName = funcDecl.name.text
-        var genMethod = "func _mproxy_\(funcName) (args: borrowing Arguments) -> SwiftGodot.Variant? {\n"
+        var genMethod = "\(staticModifierOrNothing)func _mproxy_\(funcName) (args: borrowing Arguments) -> SwiftGodot.Variant? {\n"
         var retProp: String? = nil
         var retOptional: Bool = false
         

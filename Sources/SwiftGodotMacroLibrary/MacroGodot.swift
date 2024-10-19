@@ -178,6 +178,11 @@ class GodotMacroProcessor {
         guard hasCallableAttribute(funcDecl.attributes) else {
             return
         }
+        
+        if funcDecl.hasClassModifier {
+            throw GodotMacroError.classMethodNotAllowed
+        }
+
         let funcName = funcDecl.name.text
         var funcArgs = ""
         var retProp: String? = nil
@@ -208,7 +213,12 @@ class GodotMacroProcessor {
             funcArgs.append ("    ]\n")
         }
         ctor.append (funcArgs)
-        ctor.append ("    classInfo.registerMethod(name: StringName(\"\(funcName)\"), flags: .default, returnValue: \(retProp ?? "nil"), arguments: \(funcArgs == "" ? "[]" : "\(funcName)Args"), function: \(className)._mproxy_\(funcName))\n")
+        
+        if funcDecl.hasStaticModifier {
+            ctor.append ("    classInfo.registerStaticMethod(name: StringName(\"\(funcName)\"), flags: .static, returnValue: \(retProp ?? "nil"), arguments: \(funcArgs == "" ? "[]" : "\(funcName)Args"), function: \(className)._mproxy_\(funcName))\n")
+        } else {
+            ctor.append ("    classInfo.registerMethod(name: StringName(\"\(funcName)\"), flags: .default, returnValue: \(retProp ?? "nil"), arguments: \(funcArgs == "" ? "[]" : "\(funcName)Args"), function: \(className)._mproxy_\(funcName))\n")
+        }
     }
     
     // Returns true if it used "tryCase"

@@ -49,6 +49,7 @@ enum GodotMacroError: Error, DiagnosticMessage {
     case unknownError(Error)
     case unsupportedCallableEffect
     case noSupportForOptionalEnums
+    case classMethodNotAllowed
     
     var severity: DiagnosticSeverity {
         return .error
@@ -80,6 +81,8 @@ enum GodotMacroError: Error, DiagnosticMessage {
             "@Callable does not support asynchronous or throwing functions"
         case .noSupportForOptionalEnums:
             "@Export(.enum) does not support optional values for the enumeration"
+        case .classMethodNotAllowed:
+            "@Callable doesn't support methods with `class` modifier"
         }
     }
     
@@ -95,6 +98,7 @@ enum MacroError: Error {
     case noTypeFound(VariableDeclSyntax)
     case unsupportedType(VariableDeclSyntax)
     case propertyGetSet
+    
     var localizedDescription: String {
         switch self {
         case .typeName (let p):

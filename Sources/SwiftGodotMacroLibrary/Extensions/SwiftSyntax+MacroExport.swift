@@ -183,6 +183,18 @@ private extension TypeSyntax {
 }
 
 extension FunctionDeclSyntax {
+    var hasStaticModifier: Bool {
+        modifiers.contains { modifierSyntax in
+            modifierSyntax.name.text == "static"
+        }
+    }
+    
+    var hasClassModifier: Bool {
+        modifiers.contains { modifierSyntax in
+            modifierSyntax.name.text == "class"
+        }
+    }
+    
     var returnTypeIsArray: Bool {
         signature
             .returnClause?

@@ -7,6 +7,11 @@
 
 @_implementationOnly import GDExtension
 
+struct StaticFunctionInfo {
+    var function: (borrowing Arguments) -> Variant?
+    var retType: Variant.GType?
+}
+
 /// Provides support to expose Swift methods and signals to the Godot runtime, making it callable
 /// from its runtime and scripting language.
 ///
@@ -159,6 +164,95 @@ public class ClassInfo<T:Object> {
         }
     }
     
+    /// Exposes a new static method to the Godot world with the specific name
+    ///
+    /// This example shows how to register a method that takes an int parameter:
+    /// ```
+    /// class MyNode: Node {
+    ///   func initClass() -> Bool {
+    ///     let classInfo = ClassInfo<SpinningCube>(name: "MyNode")
+    ///     let printArgs = [
+    ///       PropInfo(
+    ///         propertyType: .string,
+    ///         propertyName: StringName ("numberToCheck"),
+    ///         className: "MyNode",
+    ///         hint: .flags,
+    ///         hintStr: "Number of baddies to check",
+    ///         usage: .default)
+    ///     ]
+    ///     classInfo.registerStaticMethod (name: "checkBaddies", flags: .static, returnValue: .nil, arguments: [], function: MyNode.checkBaddies)
+    ///     return true
+    ///   }
+    ///
+    ///   required init () {
+    ///     super.init ()
+    ///     let _ = initClass ()
+    ///   }
+    ///
+    ///   static func checkBaddies (args: borrowing Arguments) -> Variant? {
+    ///     // We are getting one integer if called from Godot of type Int
+    ///     // validate in case you called this directly from Swift
+    ///     guard args.count > 0 else {
+    ///       print ("MyNode: Not enough parameters to checkBaddies: \(args.count)")
+    ///       return nil
+    ///     }
+    ///
+    ///     guard let numberToCheck = Int (args [0]) else {
+    ///       print ("MyNode: No string in vararg")
+    ///       return nil
+    ///     }
+    ///     // Use `numberToCheck` here
+    ///   }
+    /// }
+    /// ```
+    /// - Parameters;
+    ///  - name: Name to surface the method as
+    ///  - flags: the flags that describe the method in detail
+    ///  - returnValue: if nil, this method does not return a value, otherwise, the descritption of the return value as a PropInfo
+    ///  - arguments: an array describing the parameters that this method takes
+    ///  - function: this is a curried function that will be registered.   It will be invoked on the instance of your object
+    public func registerStaticMethod(name: StringName, flags: MethodFlags, returnValue: PropInfo?, arguments: [PropInfo], function: @escaping (borrowing Arguments) -> Variant?) {
+        let argPtr = UnsafeMutablePointer<GDExtensionPropertyInfo>.allocate(capacity: arguments.count)
+        defer { argPtr.deallocate() }
+        let argMeta = UnsafeMutablePointer<GDExtensionClassMethodArgumentMetadata>.allocate(capacity: arguments.count)
+        defer { argMeta.deallocate() }
+        var i = 0
+        for arg in arguments {
+            argPtr [i] = arg.makeNativeStruct()
+            argMeta [i] = GDExtensionClassMethodArgumentMetadata(GDEXTENSION_METHOD_ARGUMENT_METADATA_NONE.rawValue)
+            i += 1
+        }
+        let returnMeta = GDExtensionClassMethodArgumentMetadata(GDEXTENSION_METHOD_ARGUMENT_METADATA_NONE.rawValue)
+        var retInfo = GDExtensionPropertyInfo ()
+        if let returnValue {
+            retInfo = returnValue.makeNativeStruct()
+        }
+        let userdata = UnsafeMutablePointer<StaticFunctionInfo>.allocate(capacity: 1)
+        userdata.initialize(to: StaticFunctionInfo(function: function, retType: returnValue?.propertyType))
+        
+        withUnsafeMutablePointer(to: &name.content) { namePtr in
+            withUnsafeMutablePointer(to: &retInfo) { retInfoPtr in
+            var info = GDExtensionClassMethodInfo (
+                name: namePtr,
+                method_userdata: userdata,
+                call_func: bind_static_call,
+                ptrcall_func: nil, //ClassInfo.bind_call_ptr,
+                method_flags: UInt32 (flags.rawValue),
+                has_return_value: GDExtensionBool (returnValue != nil ? 1 : 0),
+                return_value_info: retInfoPtr,
+                return_value_metadata: returnMeta,
+                argument_count: UInt32(arguments.count),
+                arguments_info: argPtr,
+                arguments_metadata: argMeta, // GDExtensionClassMethodArgumentMetadata
+                default_argument_count: 0,
+                default_arguments: nil) // GDExtensionVariantPtr)
+                withUnsafePointer(to: &self.name.content) { namePtr in
+                    gi.classdb_register_extension_class_method (library, namePtr, &info)
+                }
+            }
+        }
+    }
+    
     /// Starts a new property group for this class, all the properties declared after calling this method
     /// will be shown together in the UI under this group.
     ///
@@ -260,6 +354,42 @@ func bind_call (_ udata: UnsafeMutableRawPointer?,
     let ret = withArguments(pargs: variantArgs, argc: argc) { arguments in
         let bound = finfo.function(object)
         return bound(arguments)
+    }
+
+    if let returnValue, let ret {
+        if ret.gtype != finfo.retType {
+            print ("Your declared function should return the type originally set \(String(describing: finfo.retType)) and \(ret.gtype)")
+            if let rError = r_error {
+                rError.pointee.error = GDEXTENSION_CALL_ERROR_INVALID_METHOD
+            }
+            return
+        }
+        let retContent = returnValue.assumingMemoryBound(to: Variant.ContentType.self)
+        retContent.pointee = ret.content
+        
+        // Since we are giving control to Godot of this variant, we need to make sure that
+        // the destructor does not get invoked here.
+        //
+        // Another instance of the problem fixed here:
+        // 5deb4affbc9cbaa7ca86066cac4a9d87f33e60e6
+        ret.content = Variant.zero
+    }
+}
+
+func bind_static_call(
+    _ udata: UnsafeMutableRawPointer?,
+    classInstance: UnsafeMutableRawPointer?,
+    variantArgs: UnsafePointer<UnsafeRawPointer?>?,
+    argc: Int64,
+    returnValue: UnsafeMutableRawPointer?,
+    r_error: UnsafeMutablePointer<GDExtensionCallError>?
+){
+    guard let udata else { return }
+        
+    let finfo = udata.assumingMemoryBound(to: StaticFunctionInfo.self).pointee
+    
+    let ret = withArguments(pargs: variantArgs, argc: argc) { arguments in
+        return finfo.function(arguments)
     }
 
     if let returnValue, let ret {
