@@ -220,6 +220,10 @@ extension FunctionDeclSyntax {
 }
 
 extension FunctionParameterSyntax {
+    var name: String {
+        secondName?.text ?? firstName.text
+    }
+    
     var isSwiftArray: Bool {
         type.isSwiftArray
     }

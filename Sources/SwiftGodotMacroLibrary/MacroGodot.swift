@@ -161,7 +161,7 @@ class GodotMacroProcessor {
     
     func processExportGroup(name: String, prefix: String) {
         members.append("""
-                .group(name: "\(name)", prefix: "\(prefix)")
+        .group(name: "\(name)", prefix: "\(prefix)")
         """)
         
         ctor.append(
@@ -173,7 +173,7 @@ class GodotMacroProcessor {
     
     func processExportSubgroup(name: String, prefix: String) {
         members.append("""
-                .subgroup(name: "\(name)", prefix: "\(prefix)")
+        .subgroup(name: "\(name)", prefix: "\(prefix)")
         """)
         
         ctor.append(
@@ -204,7 +204,7 @@ class GodotMacroProcessor {
             guard let ptype = getTypeName(parameter) else {
                 throw MacroError.typeName (parameter)
             }
-            let pname = getParamName(parameter)
+            let pname = parameter.name
             let propInfo = lookupPropParam(
                 parameterTypeName: ptype,
                 parameterElementTypeName: parameter.arrayElementTypeName ?? parameter.variantCollectionElementTypeName ?? parameter.objectCollectionElementTypeName,
@@ -481,7 +481,7 @@ class GodotMacroProcessor {
         
         let members = members
             .map {
-                "       \($0)"
+                "            \($0)"
             }
             .joined(separator: ",\n")
                 

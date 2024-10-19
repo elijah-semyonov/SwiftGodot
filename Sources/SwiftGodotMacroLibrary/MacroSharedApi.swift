@@ -166,10 +166,6 @@ func getTypeName(_ parameter: FunctionParameterSyntax) -> String? {
     }
 }
 
-func getParamName(_ parameter: FunctionParameterSyntax) -> String {
-    parameter.secondName?.text ?? parameter.firstName.text
-}
-
 var godotVariants = [
     "Int": ".int",
     "Float": ".float",
