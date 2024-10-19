@@ -40,7 +40,8 @@ class GodotMacroProcessor {
     }
     
     let classDecl: ClassDeclSyntax
-    let descriptorPrinter = Printer(name: "descriptor")
+    var descriptor: String = ""
+    var members: [String] = []
     let className: String
     
     init (classDecl: ClassDeclSyntax) {
@@ -159,6 +160,8 @@ class GodotMacroProcessor {
     }
     
     func processExportGroup(name: String, prefix: String) {
+        members.append(".group(name: name, prefix: prefix)")
+        
         ctor.append(
             """
             classInfo.addPropertyGroup(name: "\(name)", prefix: "\(prefix)")\n
@@ -167,6 +170,8 @@ class GodotMacroProcessor {
     }
     
     func processExportSubgroup(name: String, prefix: String) {
+        members.append(".subgroup(name: name, prefix: prefix)")
+        
         ctor.append(
             """
             classInfo.addPropertySubgroup(name: "\(name)", prefix: "\(prefix)")\n
@@ -402,16 +407,15 @@ class GodotMacroProcessor {
             }
             
             let godotArrayTypeName = "Array[\(godotArrayElementTypeName)]"
-            ctor.append (
-    """
-    let \(pinfo) = PropInfo (
-        propertyType: \(godotTypeToProp(typeName: "GArray")),
-        propertyName: "\(varNameWithPrefix.camelCaseToSnakeCase())",
-        className: StringName("\(godotArrayTypeName)"),
-        hint: .arrayType,
-        hintStr: "\(godotArrayElementTypeName)",
-        usage: .default)\n
-    """)
+            ctor.append("""
+            let \(pinfo) = PropInfo (
+                propertyType: \(godotTypeToProp(typeName: "GArray")),
+                propertyName: "\(varNameWithPrefix.camelCaseToSnakeCase())",
+                className: StringName("\(godotArrayTypeName)"),
+                hint: .arrayType,
+                hintStr: "\(godotArrayElementTypeName)",
+                usage: .default)\n
+            """)
             
             ctor.append("    classInfo.registerMethod (name: \"\(getterName)\", flags: .default, returnValue: \(pinfo), arguments: [], function: \(className).\(proxyGetterName))\n")
             ctor.append("    classInfo.registerMethod (name: \"\(setterName)\", flags: .default, returnValue: nil, arguments: [\(pinfo)], function: \(className).\(proxySetterName))\n")
@@ -429,6 +433,7 @@ class GodotMacroProcessor {
             assert(ClassDB.classExists(class: className))
             let classInfo = ClassInfo<\(className)> (name: className)\n
         """
+        
         var previousGroupPrefix: String? = nil
         var previousSubgroupPrefix: String? = nil
         var needTrycase = false
@@ -439,8 +444,10 @@ class GodotMacroProcessor {
                let name = macroExpansion.exportGroupName {
                 previousGroupPrefix = macroExpansion.exportGroupPrefix ?? ""
                 processExportGroup(name: name, prefix: previousGroupPrefix ?? "")
-            } else if let macroExpansion = MacroExpansionDeclSyntax(decl),
-                 let name = macroExpansion.exportSubgroupName {
+            } else if
+                let macroExpansion = MacroExpansionDeclSyntax(decl),
+                let name = macroExpansion.exportSubgroupName {
+                
                 previousSubgroupPrefix = macroExpansion.exportSubgroupPrefix ?? ""
                 processExportSubgroup(name: name, prefix: previousSubgroupPrefix ?? "")
             } else if let funcDecl = FunctionDeclSyntax(decl) {
@@ -468,18 +475,23 @@ class GodotMacroProcessor {
         }
         ctor.append("} ()\n")
         
-        let p = descriptorPrinter
-        p("public override class var classDescriptor: ExtensionClassDescriptor") {
-            p("""
+        let members = members
+            .map {
+                "       \($0)"
+            }
+            .joined(separator: ",\n")
+                
+        descriptor = """
+        public override class var classDescriptor: ExtensionClassDescriptor {
             ExtensionClassDescriptor(
                 name: "\(className)",
-                properties: []
+                members: [
+        \(members)
+                ]
             )
-            """)
-        }
+        """
         
-        
-        return .init(initializer: ctor, descriptor: p.result)
+        return .init(initializer: ctor, descriptor: descriptor)
     }
 
 }
