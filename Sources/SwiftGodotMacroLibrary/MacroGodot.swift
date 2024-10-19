@@ -160,7 +160,7 @@ class GodotMacroProcessor {
     }
     
     func processExportGroup(name: String, prefix: String) {
-        members.append(".group(name: name, prefix: prefix)")
+        members.append(".group(name: \(name), prefix: \(prefix)")
         
         ctor.append(
             """
