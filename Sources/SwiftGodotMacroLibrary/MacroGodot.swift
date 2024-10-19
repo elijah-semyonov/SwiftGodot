@@ -161,11 +161,10 @@ class GodotMacroProcessor {
     
     func processExportGroup(name: String, prefix: String) {
         members.append("""
-        .group(name: "\(name)", prefix: "\(prefix)")
-        """)
+            .group(name: "\(name)", prefix: "\(prefix)")
+            """)
         
-        ctor.append(
-            """
+        ctor.append("""
             classInfo.addPropertyGroup(name: "\(name)", prefix: "\(prefix)")\n
             """
         )
@@ -176,8 +175,7 @@ class GodotMacroProcessor {
         .subgroup(name: "\(name)", prefix: "\(prefix)")
         """)
         
-        ctor.append(
-            """
+        ctor.append("""
             classInfo.addPropertySubgroup(name: "\(name)", prefix: "\(prefix)")\n
             """
         )
@@ -312,17 +310,17 @@ class GodotMacroProcessor {
             if isEnum {
                 usedTryCase = true
             }
-            ctor.append (
-    """
-    let \(pinfo) = PropInfo (
-        propertyType: \(propType),
-        propertyName: "\(varNameWithPrefix)",
-        className: className,
-        hint: .\(firstLabeledExpression?.description ?? "none"),
-        hintStr: \(secondLabeledExpression?.description ?? fallback),
-        usage: .default)
-    
-    """)
+            ctor.append ("""
+                let \(pinfo) = PropInfo (
+                    propertyType: \(propType),
+                    propertyName: "\(varNameWithPrefix)",
+                    className: className,
+                    hint: .\(firstLabeledExpression?.description ?? "none"),
+                    hintStr: \(secondLabeledExpression?.description ?? fallback),
+                    usage: .default)
+                
+                """
+            )
             
             ctor.append("    classInfo.registerMethod (name: \"\(getterName)\", flags: .default, returnValue: \(pinfo), arguments: [], function: \(className).\(proxyGetterName))\n")
             ctor.append("    classInfo.registerMethod (name: \"\(setterName)\", flags: .default, returnValue: nil, arguments: [\(pinfo)], function: \(className).\(proxySetterName))\n")
@@ -432,11 +430,11 @@ class GodotMacroProcessor {
     
     func processType () throws -> GodotMacroProcessedType {
         ctor = """
-        private static let _initializeClass: Void = {
-            let className = StringName("\(className)")
-            assert(ClassDB.classExists(class: className))
-            let classInfo = ClassInfo<\(className)> (name: className)\n
-        """
+            private static let _initializeClass: Void = {
+                let className = StringName("\(className)")
+                assert(ClassDB.classExists(class: className))
+                let classInfo = ClassInfo<\(className)> (name: className)\n
+            """
         
         var previousGroupPrefix: String? = nil
         var previousSubgroupPrefix: String? = nil
@@ -587,19 +585,16 @@ public struct GodotMacro: MemberMacro {
         do {
             let processedType = try processor.processType()
 
-            let isFinal = classDecl.modifiers
-                .map(\.name.tokenKind)
-                .contains(.keyword(.final))
+            let isFinal = classDecl.containsFinalModifier
 
             let accessControlLevel = isFinal ? "public" : "open"
 
-            let classInitProperty = DeclSyntax(
-            """
-            override \(raw: accessControlLevel) class var classInitializer: Void {
-                let _ = super.classInitializer
-                return _initializeClass
-            }
-            """
+            let classInitProperty = DeclSyntax("""
+                override \(raw: accessControlLevel) class var classInitializer: Void {
+                    let _ = super.classInitializer
+                    return _initializeClass
+                }
+                """
             )
             
             var decls = [classInitProperty, DeclSyntax(stringLiteral: processedType.initializer), DeclSyntax(stringLiteral: processedType.descriptor)]

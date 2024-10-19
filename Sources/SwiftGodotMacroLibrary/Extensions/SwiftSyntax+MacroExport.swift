@@ -268,6 +268,12 @@ extension ClassDeclSyntax {
             member.decl.as(FunctionDeclSyntax.self)
         }
     }
+    
+    var containsFinalModifier: Bool {
+        modifiers
+            .map(\.name.tokenKind)
+            .contains(.keyword(.final))
+    }
 }
 
 extension [FunctionDeclSyntax] {
