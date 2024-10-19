@@ -160,7 +160,9 @@ class GodotMacroProcessor {
     }
     
     func processExportGroup(name: String, prefix: String) {
-        members.append(".group(name: \(name), prefix: \(prefix)")
+        members.append("""
+                .group(name: "\(name)", prefix: "\(prefix)")
+        """)
         
         ctor.append(
             """
@@ -170,7 +172,9 @@ class GodotMacroProcessor {
     }
     
     func processExportSubgroup(name: String, prefix: String) {
-        members.append(".subgroup(name: \(name), prefix: \(prefix)")
+        members.append("""
+                .subgroup(name: "\(name)", prefix: "\(prefix)")
+        """)
         
         ctor.append(
             """
