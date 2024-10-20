@@ -215,7 +215,7 @@ class GodotMacroProcessor {
         ctor.append (funcArgs)
         
         if funcDecl.hasStaticModifier {
-            ctor.append ("    classInfo.registerStaticMethod(name: StringName(\"\(funcName)\"), flags: .static, returnValue: \(retProp ?? "nil"), arguments: \(funcArgs == "" ? "[]" : "\(funcName)Args"), function: \(className)._mproxy_\(funcName))\n")
+            ctor.append ("    classInfo.registerStaticMethod(name: StringName(\"\(funcName)\"), flags: [.default, .static], returnValue: \(retProp ?? "nil"), arguments: \(funcArgs == "" ? "[]" : "\(funcName)Args"), function: \(className)._mproxy_\(funcName))\n")
         } else {
             ctor.append ("    classInfo.registerMethod(name: StringName(\"\(funcName)\"), flags: .default, returnValue: \(retProp ?? "nil"), arguments: \(funcArgs == "" ? "[]" : "\(funcName)Args"), function: \(className)._mproxy_\(funcName))\n")
         }
