@@ -15,6 +15,7 @@
 ///
 /// If you want to make an additional type work with Variants that does not have a direct
 /// GType, you should instead conform that type to `VariantStorable`.
+@available(*, deprecated, message: "Use `VariantCodable` instead")
 public protocol VariantRepresentable: VariantStorable {
     /// The raw godot storage type
     static var godotType: Variant.GType { get }

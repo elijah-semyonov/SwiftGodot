@@ -153,4 +153,7 @@ final class VariantTests: GodotTestCase {
         XCTAssertFalse (Variant (node) == Variant (Node ()))
     }
     
+    func testCodable() {
+        XCTAssertTrue(true.toVariant().to(Bool.self) == true)
+    }
 }

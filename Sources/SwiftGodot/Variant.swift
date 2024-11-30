@@ -136,6 +136,10 @@ public class Variant: Hashable, Equatable, CustomDebugStringConvertible {
         return result
     }
     
+    public func to<T: VariantDecodable>(_ type: T.Type = T.self) -> T? {
+        type.fromVariant(self)
+    }
+    
     func toType (_ type: GType, dest: UnsafeMutableRawPointer) {
         withUnsafeMutablePointer(to: &content) { selfPtr in
             Variant.toTypeMap [Int (type.rawValue)] (dest, selfPtr)

@@ -16,6 +16,7 @@
 ///
 /// Every VariantStorable must be able to convert to an underlying `VariantRepresentable`
 /// type which is one that can be stored natively in a `Variant`.
+@available(*, deprecated, message: "Use `VariantCodable` instead")
 public protocol VariantStorable {
     associatedtype Representable: VariantRepresentable
     
