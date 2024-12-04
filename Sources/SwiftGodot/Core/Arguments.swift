@@ -156,7 +156,7 @@ public struct Arguments: ~Copyable {
     /// Throws an error if:
     /// - `Variant` is not `nil` but wraps a type other than `T`
     /// - `index` is out of bounds.
-    public func optionlArgument<T: VariantStorable>(ofType type: T.Type = T.self, at index: Int) throws -> T? {
+    public func optionalArgument<T: VariantStorable>(ofType type: T.Type = T.self, at index: Int) throws -> T? {
         let arg = try optionalVariantArgument(at: index)
         
         if let variant = arg {
@@ -175,7 +175,7 @@ public struct Arguments: ~Copyable {
     /// Throws an error if:
     /// - `Variant` is not `nil` but wraps a type other than `T`
     /// - `index` is out of bounds.
-    public func optionlArgument<T: Object>(ofType type: T.Type = T.self, at index: Int) throws -> T? {
+    public func optionalArgument<T: Object>(ofType type: T.Type = T.self, at index: Int) throws -> T? {
         let arg = try optionalVariantArgument(at: index)
         
         if let variant = arg {
