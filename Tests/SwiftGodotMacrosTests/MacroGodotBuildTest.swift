@@ -138,7 +138,7 @@ public class Demo17: Node {
 @Godot class Demo18: Node {
     @Callable func deleteEpisode() {}
     @Callable func subscribe(podcast: Object) {}
-    @Callable func removeSilences(from: Variant) {}
+    @Callable func removeSilences(from: Variant?) {}
     @Callable func getLatestEpisode(podcast: Object) -> Object {
         return Object()
     }

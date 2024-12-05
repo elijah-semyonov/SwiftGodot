@@ -60,12 +60,10 @@ public class ClassInfo<T:Object> {
     // Here so we can box the function pointer
     struct FunctionInfo {
         var function: (T) -> (borrowing Arguments) -> Variant?
-        var retType: Variant.GType?
         var ttype: T.Type
         
-        init (_ function: @escaping (T) -> (borrowing Arguments) -> Variant?, retType: Variant.GType?) {
+        init (_ function: @escaping (T) -> (borrowing Arguments) -> Variant?) {
             self.function = function
-            self.retType = retType
             self.ttype = T.self
         }
     }
@@ -134,7 +132,7 @@ public class ClassInfo<T:Object> {
             retInfo = returnValue.makeNativeStruct()
         }
         let userdata = UnsafeMutablePointer<FunctionInfo>.allocate(capacity: 1)
-        userdata.initialize(to: .init(function, retType: returnValue?.propertyType))
+        userdata.initialize(to: .init(function))
         
         withUnsafeMutablePointer(to: &name.content) { namePtr in
             withUnsafeMutablePointer(to: &retInfo) { retInfoPtr in
@@ -249,7 +247,7 @@ func bind_call (_ udata: UnsafeMutableRawPointer?,
                 classInstance: UnsafeMutableRawPointer?,
                 variantArgs: UnsafePointer<UnsafeRawPointer?>?,
                 argc: Int64,
-                returnValue: UnsafeMutableRawPointer?,
+                dst: UnsafeMutableRawPointer?,
                 r_error: UnsafeMutablePointer<GDExtensionCallError>?){
     guard let udata else { return }
     guard let classInstance else { return }
@@ -257,28 +255,21 @@ func bind_call (_ udata: UnsafeMutableRawPointer?,
     let finfo = udata.assumingMemoryBound(to: ClassInfo.FunctionInfo.self).pointee
     let object = Unmanaged<Object>.fromOpaque(classInstance).takeUnretainedValue()
     
-    let ret = withArguments(pargs: variantArgs, argc: argc) { arguments in
+    let callResult = withArguments(pargs: variantArgs, argc: argc) { arguments in
         let bound = finfo.function(object)
         return bound(arguments)
     }
 
-    if let returnValue, let ret {
-        if ret.gtype != finfo.retType {
-            print ("Your declared function should return the type originally set \(String(describing: finfo.retType)) and \(ret.gtype)")
-            if let rError = r_error {
-                rError.pointee.error = GDEXTENSION_CALL_ERROR_INVALID_METHOD
-            }
-            return
-        }
-        let retContent = returnValue.assumingMemoryBound(to: Variant.ContentType.self)
-        retContent.pointee = ret.content
+    if let dst, let callResult {
+        let dst = dst.assumingMemoryBound(to: Variant.ContentType.self)
+        dst.pointee = callResult.content
         
         // Since we are giving control to Godot of this variant, we need to make sure that
         // the destructor does not get invoked here.
         //
         // Another instance of the problem fixed here:
         // 5deb4affbc9cbaa7ca86066cac4a9d87f33e60e6
-        ret.content = Variant.zero
+        callResult.content = Variant.zero
     }
 }
 
