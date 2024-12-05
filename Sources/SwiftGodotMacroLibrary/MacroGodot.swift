@@ -71,7 +71,12 @@ class GodotMacroProcessor {
             className = "Array[\(godotArrayElementTypeName)]"
             hintStr = godotArrayElementTypeName
         } else if propType == ".object" {
-            className = parameterTypeName
+            if parameterTypeName == "Variant?" {
+                // Godot Variant types are kept in PropInfo as .object with a className of "Variant"
+                className = "Variant"
+            } else {
+                className = parameterTypeName
+            }
             hintStr = ""
         } else {
             className = ""

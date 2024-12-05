@@ -13,6 +13,10 @@ private class TestNode: Node {
         receivedString = name
     }
     
+    @Callable func foo(_ arg: Variant?) -> Variant? {
+        return arg
+    }
+    
     func probe () {
         connect (signal: TestNode.mySignal, to: self, method: "demo")
         emit (signal: TestNode.mySignal, 22, "Joey")
@@ -110,6 +114,15 @@ final class MarshalTests: GodotTestCase {
         XCTAssertEqual(dc, wrapDouble (dc))
         XCTAssertEqual(true, wrapBool (true))
         XCTAssertEqual(false, wrapBool (false))
+    }
+    
+    func testCallableWithVariantArg() {
+        let node = TestNode()
+        
+        XCTAssertEqual(node.call(method: "foo", Variant("Hello")), Variant("Hello"))
+        XCTAssertNotEqual(node.call(method: "foo", Variant("Hello")), Variant("NotHello"))
+        XCTAssertNotEqual(node.call(method: "foo", Variant("Hello")), nil)
+        XCTAssertEqual(node.call(method: "foo", nil), nil)
     }
 }
 
