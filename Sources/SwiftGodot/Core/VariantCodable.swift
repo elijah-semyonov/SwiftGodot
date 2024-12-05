@@ -188,4 +188,27 @@ extension Double: VariantCodable {
     }
 }
 
+//extension GString: VariantCodable {
+//    static let encodeFunc = gi.get_variant_from_type_constructor(GDEXTENSION_VARIANT_TYPE_STRING)!
+//    
+//    static let decodeFunc = gi.get_variant_to_type_constructor(GDEXTENSION_VARIANT_TYPE_STRING)!
+//    
+//    public static func fromVariant(_ variant: Variant) -> Self? {
+//        guard variant.gtype == .string else {
+//            return nil
+//        }
+//        
+//        var value = GString()
+//        decodeFunc(&value, &variant.content)
+//        return value
+//    }
+//    
+//    public func toVariant() -> Variant {
+//        var dst = Variant.zero
+//        
+//        Self.encodeFunc(&dst, &content)
+//        
+//        return Variant(takingOver: dst)!
+//    }
+//}
 

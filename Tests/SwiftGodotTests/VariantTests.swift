@@ -155,5 +155,9 @@ final class VariantTests: GodotTestCase {
     
     func testCodable() {
         XCTAssertTrue(true.toVariant().to(Bool.self) == true)
+        XCTAssertTrue(false.toVariant().to(Bool.self) == false)
+        XCTAssertTrue(true.toVariant().to(Int.self) == nil)
+        
+        
     }
 }
