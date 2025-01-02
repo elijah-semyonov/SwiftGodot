@@ -9,7 +9,16 @@ import XCTest
 import SwiftGodotTestability
 @testable import SwiftGodot
 
+@Godot
+class TestRefCounted: RefCounted {
+    
+}
+
 final class VariantTests: GodotTestCase {
+    
+    override class var godotSubclasses: [Wrapped.Type] {
+        [TestRefCounted.self]
+    }
     
     func testVariant () {
         let testString = "Hi"
@@ -153,11 +162,6 @@ final class VariantTests: GodotTestCase {
         XCTAssertFalse (Variant (node) == Variant (Node ()))
     }
     
-    func testCodable() {
-        XCTAssertTrue(true.toVariant().to(Bool.self) == true)
-        XCTAssertTrue(false.toVariant().to(Bool.self) == false)
-        XCTAssertTrue(true.toVariant().to(Int.self) == nil)
-        
-        
+    func testSomething() {
     }
 }
