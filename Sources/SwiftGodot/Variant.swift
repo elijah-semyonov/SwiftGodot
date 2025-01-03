@@ -7,6 +7,9 @@
 
 @_implementationOnly import GDExtension
 
+
+public typealias Variant = OldVariant
+
 /// Variant objects box various Godot Objects, you create them with one of the
 /// constructors, and you can retrieve the contents using the various extension
 /// constructors that are declared on the various types that are wrapped.
@@ -37,7 +40,7 @@
 ///
 /// Modifications to a container will modify all references to it.
 
-public class Variant: Hashable, Equatable, CustomDebugStringConvertible {
+public class OldVariant: Hashable, Equatable, CustomDebugStringConvertible {
     static let fromTypeMap: [GDExtensionVariantFromTypeConstructorFunc] = {
         var map: [GDExtensionVariantFromTypeConstructorFunc] = []
         

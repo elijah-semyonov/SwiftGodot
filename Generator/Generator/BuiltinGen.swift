@@ -622,7 +622,7 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
             doc (p, bc, bc.description)
         }
         
-        p ("public \(kind == .isStruct ? "struct" : "class") \(typeName)\(proto)") {
+        p ("public \(kind == .isStruct ? "struct" : "final class") \(typeName)\(proto)") {
             if bc.name == "String" {
                 p("""
                 public required init(_ string: String) {

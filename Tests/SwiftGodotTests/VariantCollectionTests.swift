@@ -57,6 +57,22 @@ final class VariantCollectionTests: GodotTestCase {
         XCTAssertEqual(sut.count, 1, "The collection count should be 1 after appending an element")
         XCTAssertEqual(sut[0], 222, "After 222 is appended to the \(GArray.self), the first value should be to 222")
     }
+    
+    func testCompactMap() {
+        let array = GArray()
+        array.append(Variant(1))
+        array.append(Variant(2))
+        array.append(nil)
+        array.append(Variant("Foo"))
+        array.append(Variant(false))
+        array.append(Variant(3))
+        
+        let result = array.compactMap {
+            $0.map { variant in Int(variant)}
+        }                
+        
+        XCTAssertEqual(result, [1, 2, 3], "The compact map should return an array of Ints with the values 1, 2, and 3")
+    }
 }
 
 private extension GArray {
