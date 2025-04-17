@@ -11,7 +11,7 @@ private class TestNode: Node {
                 return nil
             }
             let arg0 = try arguments.argument(ofType: Variant?.self, at: 0)
-            return SwiftGodot._wrapCallableResult(object.foo(variant: arg0))
+            return SwiftGodot._wrapResult(object.foo(variant: arg0))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `foo`: \(error.description)")

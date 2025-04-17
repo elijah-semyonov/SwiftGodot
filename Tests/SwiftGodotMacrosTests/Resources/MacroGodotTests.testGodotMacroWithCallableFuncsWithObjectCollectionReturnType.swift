@@ -10,7 +10,7 @@ class SomeNode: Node {
             SwiftGodot.GD.printErr("Error calling `getNodeCollection`: failed to unwrap instance \(pInstance)")
             return nil
         }
-        return SwiftGodot._wrapCallableResult(object.getNodeCollection())
+        return SwiftGodot._wrapResult(object.getNodeCollection())
 
     }
 

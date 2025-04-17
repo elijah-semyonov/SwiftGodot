@@ -22,7 +22,7 @@ class OtherThing: SwiftGodot.Node {
             SwiftGodot.GD.printErr("Error calling `get_thing`: failed to unwrap instance \(pInstance)")
             return nil
         }
-        return SwiftGodot._wrapCallableResult(object.get_thing())
+        return SwiftGodot._wrapResult(object.get_thing())
 
     }
 

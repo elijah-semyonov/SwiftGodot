@@ -6,7 +6,7 @@ class Castro: Node {
             SwiftGodot.GD.printErr("Error calling `deleteEpisode`: failed to unwrap instance \(pInstance)")
             return nil
         }
-        return SwiftGodot._wrapCallableResult(object.deleteEpisode())
+        return SwiftGodot._wrapResult(object.deleteEpisode())
 
     }
     func subscribe(podcast: Podcast) {}
@@ -18,7 +18,7 @@ class Castro: Node {
                 return nil
             }
             let arg0 = try arguments.argument(ofType: Podcast.self, at: 0)
-            return SwiftGodot._wrapCallableResult(object.subscribe(podcast: arg0))
+            return SwiftGodot._wrapResult(object.subscribe(podcast: arg0))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `subscribe`: \(error.description)")
@@ -35,7 +35,7 @@ class Castro: Node {
                 return nil
             }
             let arg0 = try arguments.argument(ofType: Podcast?.self, at: 0)
-            return SwiftGodot._wrapCallableResult(object.perhapsSubscribe(podcast: arg0))
+            return SwiftGodot._wrapResult(object.perhapsSubscribe(podcast: arg0))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `perhapsSubscribe`: \(error.description)")
@@ -52,7 +52,7 @@ class Castro: Node {
                 return nil
             }
             let arg0 = try arguments.argument(ofType: Variant.self, at: 0)
-            return SwiftGodot._wrapCallableResult(object.removeSilences(from: arg0))
+            return SwiftGodot._wrapResult(object.removeSilences(from: arg0))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `removeSilences`: \(error.description)")
@@ -69,7 +69,7 @@ class Castro: Node {
                 return nil
             }
             let arg0 = try arguments.argument(ofType: Podcast.self, at: 0)
-            return SwiftGodot._wrapCallableResult(object.getLatestEpisode(podcast: arg0))
+            return SwiftGodot._wrapResult(object.getLatestEpisode(podcast: arg0))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `getLatestEpisode`: \(error.description)")
@@ -87,7 +87,7 @@ class Castro: Node {
             }
             let arg0 = try arguments.argument(ofType: Podcast.self, at: 0)
             let arg1 = try arguments.argument(ofType: Podcast.self, at: 1)
-            return SwiftGodot._wrapCallableResult(object.queue(arg0, after: arg1))
+            return SwiftGodot._wrapResult(object.queue(arg0, after: arg1))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `queue`: \(error.description)")

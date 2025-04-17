@@ -22,7 +22,7 @@ class OtherThing: SwiftGodot.Node {
                 return nil
             }
             let arg0 = try arguments.argument(ofType: String?.self, at: 0)
-            return SwiftGodot._wrapCallableResult(object.do_string(value: arg0))
+            return SwiftGodot._wrapResult(object.do_string(value: arg0))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `do_string`: \(error.description)")
@@ -40,7 +40,7 @@ class OtherThing: SwiftGodot.Node {
                 return nil
             }
             let arg0 = try arguments.argument(ofType: Int?.self, at: 0)
-            return SwiftGodot._wrapCallableResult(object.do_int(value: arg0))
+            return SwiftGodot._wrapResult(object.do_int(value: arg0))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `do_int`: \(error.description)")
@@ -58,7 +58,7 @@ class OtherThing: SwiftGodot.Node {
             SwiftGodot.GD.printErr("Error calling `get_thing`: failed to unwrap instance \(pInstance)")
             return nil
         }
-        return SwiftGodot._wrapCallableResult(object.get_thing())
+        return SwiftGodot._wrapResult(object.get_thing())
 
     }
 

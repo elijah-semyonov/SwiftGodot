@@ -11,7 +11,7 @@ class SomeNode: Node {
                 return nil
             }
             let arg0 = try arguments.argument(ofType: ObjectCollection<Node>.self, at: 0)
-            return SwiftGodot._wrapCallableResult(object.printNames(of: arg0))
+            return SwiftGodot._wrapResult(object.printNames(of: arg0))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `printNames`: \(error.description)")

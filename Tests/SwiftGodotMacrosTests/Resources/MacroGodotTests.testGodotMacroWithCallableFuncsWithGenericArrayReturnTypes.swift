@@ -9,7 +9,7 @@ class CallableCollectionsNode: Node {
             SwiftGodot.GD.printErr("Error calling `get_ages`: failed to unwrap instance \(pInstance)")
             return nil
         }
-        return SwiftGodot._wrapCallableResult(object.get_ages())
+        return SwiftGodot._wrapResult(object.get_ages())
 
     }
     func get_markers() -> Array<Marker3D> {
@@ -21,7 +21,7 @@ class CallableCollectionsNode: Node {
             SwiftGodot.GD.printErr("Error calling `get_markers`: failed to unwrap instance \(pInstance)")
             return nil
         }
-        return SwiftGodot._wrapCallableResult(object.get_markers())
+        return SwiftGodot._wrapResult(object.get_markers())
 
     }
 

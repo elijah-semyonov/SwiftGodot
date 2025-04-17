@@ -30,7 +30,7 @@ class Thing: SwiftGodot.Object {
             SwiftGodot.GD.printErr("Error calling `get_some`: failed to unwrap instance \(pInstance)")
             return nil
         }
-        return SwiftGodot._wrapCallableResult(object.get_some())
+        return SwiftGodot._wrapResult(object.get_some())
 
     }
 

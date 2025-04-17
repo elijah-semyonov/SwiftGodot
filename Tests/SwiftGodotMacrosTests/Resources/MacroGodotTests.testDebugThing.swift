@@ -12,7 +12,7 @@ class DebugThing: SwiftGodot.Object {
                 return nil
             }
             let arg0 = try arguments.argument(ofType: SwiftGodot.Variant?.self, at: 0)
-            return SwiftGodot._wrapCallableResult(object.do_thing(value: arg0))
+            return SwiftGodot._wrapResult(object.do_thing(value: arg0))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `do_thing`: \(error.description)")

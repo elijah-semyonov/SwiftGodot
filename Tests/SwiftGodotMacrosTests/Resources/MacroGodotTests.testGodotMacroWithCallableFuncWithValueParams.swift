@@ -9,7 +9,7 @@ class MathHelper: Node {
             }
             let arg0 = try arguments.argument(ofType: Int.self, at: 0)
             let arg1 = try arguments.argument(ofType: Int.self, at: 1)
-            return SwiftGodot._wrapCallableResult(object.multiply(arg0, by: arg1))
+            return SwiftGodot._wrapResult(object.multiply(arg0, by: arg1))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `multiply`: \(error.description)")
@@ -27,7 +27,7 @@ class MathHelper: Node {
             }
             let arg0 = try arguments.argument(ofType: Float.self, at: 0)
             let arg1 = try arguments.argument(ofType: Float.self, at: 1)
-            return SwiftGodot._wrapCallableResult(object.divide(arg0, by: arg1))
+            return SwiftGodot._wrapResult(object.divide(arg0, by: arg1))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `divide`: \(error.description)")
@@ -45,7 +45,7 @@ class MathHelper: Node {
             }
             let arg0 = try arguments.argument(ofType: Bool.self, at: 0)
             let arg1 = try arguments.argument(ofType: Bool.self, at: 1)
-            return SwiftGodot._wrapCallableResult(object.areBothTrue(arg0, and: arg1))
+            return SwiftGodot._wrapResult(object.areBothTrue(arg0, and: arg1))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `areBothTrue`: \(error.description)")

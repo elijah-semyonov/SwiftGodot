@@ -120,10 +120,8 @@ public final class Variant: Hashable, Equatable, CustomDebugStringConvertible, _
     
     /// Creates a new Variant based on a copy of the reference variant passed in
     public init(_ other: Variant) {
-        withUnsafeMutablePointer(to: &content) { selfPtr in
-            withUnsafePointer(to: other.content) { ptr in
-                gi.variant_new_copy(selfPtr, ptr)
-            }
+        withUnsafePointer(to: other.content) { ptr in
+            gi.variant_new_copy(&content, ptr)
         }
         extensionInterface.variantInited(variant: self, content: &content)
     }
@@ -139,10 +137,8 @@ public final class Variant: Hashable, Equatable, CustomDebugStringConvertible, _
         ) -> Void
     ) {
         var payload = payload
-        withUnsafeMutablePointer(to: &content) { pVariantContent in
-            withUnsafeMutablePointer(to: &payload) { pPayload in
-                constructor(pVariantContent, pPayload)
-            }
+        withUnsafeMutablePointer(to: &payload) { pPayload in
+            constructor(&content, pPayload)
         }
         
         extensionInterface.variantInited(variant: self, content: &content)
@@ -526,9 +522,7 @@ public final class Variant: Hashable, Equatable, CustomDebugStringConvertible, _
         var newContent = VariantContent.zero
         
         withUnsafeMutablePointer(to: &newContent) { pNewContent in
-            withUnsafePointer(to: &content) { pCopiedContent in
-                gi.variant_new_copy(pNewContent, pCopiedContent)
-            }
+            gi.variant_new_copy(pNewContent, &content)
         }
         
         return FastVariant(unsafeTakingOver: newContent)
@@ -541,8 +535,7 @@ public final class Variant: Hashable, Equatable, CustomDebugStringConvertible, _
     
     /// Internal API. Store this type into `ptrcall` return value.
     public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
-        
-        ptr.assumingMemoryBound(to: VariantContent.self).initialize(to: content)
+        gi.variant_new_copy(ptr, &content)
     }
 }
 

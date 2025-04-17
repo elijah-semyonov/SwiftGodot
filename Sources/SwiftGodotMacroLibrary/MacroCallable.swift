@@ -78,7 +78,7 @@ public struct GodotCallable: PeerMacro {
         let callArgs = callArgsList.joined(separator: ", ")
         
         body += """
-        \(indentation)    return SwiftGodot._wrapCallableResult(\(objectOrSelf).\(funcName)(\(callArgs)))
+        \(indentation)    return SwiftGodot._wrapResult(\(objectOrSelf).\(funcName)(\(callArgs)))
         
         """
         

@@ -11,7 +11,7 @@ class MultiplierNode: Node {
                 return nil
             }
             let arg0 = try arguments.argument(ofType: Array<Int>.self, at: 0)
-            return SwiftGodot._wrapCallableResult(object.multiply(arg0))
+            return SwiftGodot._wrapResult(object.multiply(arg0))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `multiply`: \(error.description)")

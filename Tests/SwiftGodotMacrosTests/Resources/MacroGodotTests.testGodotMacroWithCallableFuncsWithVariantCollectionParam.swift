@@ -11,7 +11,7 @@ class SomeNode: Node {
                 return nil
             }
             let arg0 = try arguments.argument(ofType: VariantCollection<Int>.self, at: 0)
-            return SwiftGodot._wrapCallableResult(object.square(arg0))
+            return SwiftGodot._wrapResult(object.square(arg0))
 
         } catch {
             SwiftGodot.GD.printErr("Error calling `square`: \(error.description)")
