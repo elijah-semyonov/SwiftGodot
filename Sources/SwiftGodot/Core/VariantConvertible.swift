@@ -206,8 +206,11 @@ public protocol _GodotBridgeable: VariantConvertible {
         usage: PropertyUsageFlags?
     ) -> PropInfo
     
-    /// Internal API. Store this type into `ptrcall` return value.
-    func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer)
+    /// Internal API. Store this type into `ptrcall` convention return value.
+    func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer)
+    
+    /// Internal API. Reconstruct this type from `ptrcall` convention argument.
+    static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self
 }
 
 /// Internal API. Subset protocol for all Builtin Types.
@@ -327,10 +330,29 @@ public extension _GodotBridgeable where Self: Object {
         )
     }
     
-    /// Internal API. Store this type into `ptrcall` return value.
-    func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+    /// Internal API. Store this type into `ptrcall` convention return value.
+    func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
         _refCountedRetain()
         ptr.assumingMemoryBound(to: UnsafeRawPointer?.self).initialize(to: handle)
+    }
+    
+    static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+        guard let ptr else {
+            GD.printErr("Expected \(self) - received null pointer as an argument")
+            return Self()
+        }
+        
+        guard let objectHandle = ptr.assumingMemoryBound(to: UnsafeRawPointer?.self).pointee else {
+            GD.printErr("Expected \(self) - received null reference")
+            return Self()
+        }
+        
+        guard let ret: Self = lookupObject(nativeHandle: objectHandle, ownsRef: false) else {
+            GD.printErr("Expected \(self) - couldn't reconstruct an object")
+            return Self()
+        }
+        
+        return ret
     }
 }
 
@@ -452,11 +474,23 @@ extension Int64: _GodotBridgeableBuiltin {
         return value
     }
     
-    /// Internal API. Store this type into `ptrcall` return value.
+    /// Internal API. Store this type into `ptrcall` convention return value.
     @inline(__always)
     @inlinable
-    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+    public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
         ptr.assumingMemoryBound(to: Self.self).initialize(to: self)
+    }
+    
+    /// Internal API. Reconstruct this type from `ptrcall` convention argument.
+    @inline(__always)
+    @inlinable
+    public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+        guard let ptr else {
+            GD.printErr("`_fromPtrCallArgument` received null pointer")
+            return 0
+        }
+        
+        return ptr.assumingMemoryBound(to: Self.self).pointee
     }
 }
 
@@ -570,11 +604,29 @@ public extension BinaryInteger where Self: _GodotBridgeableBuiltin {
         }
     }
     
-    /// Internal API. Store this type into `ptrcall` return value.
+    /// Internal API. Store this type into `ptrcall` convention return value.
     @inline(__always)
     @inlinable
-    func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+    func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
         ptr.assumingMemoryBound(to: Int64.self).initialize(to: Int64(self))
+    }
+    
+    /// Internal API. Reconstruct this type from `ptrcall` convention argument.
+    @inline(__always)
+    @inlinable
+    static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+        guard let ptr else {
+            GD.printErr("`_fromPtrCallArgument` received null pointer")
+            return 0
+        }
+        
+        let value = ptr.assumingMemoryBound(to: Int64.self).pointee
+        guard let value = Self(exactly: value) else {
+            GD.printErr("\(value) doesn't fit \(Self.self), returning 0")
+            return 0
+        }
+        
+        return value
     }
 }
 
@@ -698,10 +750,20 @@ extension Bool: _GodotBridgeableBuiltin {
         return value
     }
     
-    /// Internal API. Store this type into `ptrcall` return value.
+    /// Internal API. Store this type into `ptrcall` convention return value.
     @inline(__always)
-    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+    public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
         ptr.assumingMemoryBound(to: GDExtensionBool.self).initialize(to: self ? 1 : 0)
+    }
+    
+    @inline(__always)
+    public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+        guard let ptr else {
+            GD.printErr("`_fromPtrCallArgument` received null pointer")
+            return false
+        }
+        
+        return ptr.assumingMemoryBound(to: GDExtensionBool.self).pointee != 0
     }
 }
 
@@ -844,10 +906,22 @@ extension String: _GodotBridgeableBuiltin {
     }
     
     @inline(__always)
-    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+    public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
         var content = GString.zero
         gi.string_new_with_utf8_chars(&content, self)
         ptr.assumingMemoryBound(to: GString.ContentType.self).initialize(to: content)
+    }
+    
+    /// Internal API. Reconstruct this type from `ptrcall` convention argument.
+    @inline(__always)
+    @inlinable
+    public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+        guard let ptr else {
+            GD.printErr("`_fromPtrCallArgument` received null pointer")
+            return ""
+        }
+        
+        return GString.toString(pContent: ptr)
     }
 }
 
@@ -943,12 +1017,25 @@ extension Double: _GodotBridgeableBuiltin {
         return value
     }
     
-    /// Internal API. Store this type into `ptrcall` return value.
+    /// Internal API. Store this type into `ptrcall` convention return value.
     @inline(__always)
     @inlinable
-    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+    public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
         ptr.assumingMemoryBound(to: Self.self).initialize(to: self)
     }
+    
+    /// Internal API. Reconstruct this type from `ptrcall` convention argument.
+    @inline(__always)
+    @inlinable
+    public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+        guard let ptr else {
+            GD.printErr("`_fromPtrCallArgument` received null pointer")
+            return 0.0
+        }
+        
+        return ptr.assumingMemoryBound(to: Double.self).pointee
+    }
+    
 }
 
 public extension BinaryFloatingPoint where Self: VariantConvertible  {
@@ -1018,11 +1105,23 @@ public extension BinaryFloatingPoint where Self: VariantConvertible  {
         Self(try Double.fromFastVariantOrThrow(variant))
     }
     
-    /// Internal API. Store this type into `ptrcall` return value.
+    /// Internal API. Store this type into `ptrcall` convention return value.
     @inline(__always)
     @inlinable
-    func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+    func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
         ptr.assumingMemoryBound(to: Double.self).initialize(to: Double(self))
+    }
+    
+    /// Internal API. Reconstruct this type from `ptrcall` convention argument.
+    @inline(__always)
+    @inlinable
+    static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+        guard let ptr else {
+            GD.printErr("`_fromPtrCallArgument` received null pointer")
+            return 0.0
+        }
+        
+        return Self(ptr.assumingMemoryBound(to: Double.self).pointee)
     }
 }
 

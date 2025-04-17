@@ -470,12 +470,34 @@ public extension VariantConvertible {
 /// It's used for conditional extension of Optional.
 /// This is a workaround for Swift inability to have multiple conditional extensions for one type (Optional in our case).
 public protocol _GodotOptionalBridgeable: _GodotBridgeable {
+    static func _fromPtrCallArgumentMaybeOptional(_ ptr: UnsafeRawPointer?) -> Self?
 }
 
 extension Object: _GodotOptionalBridgeable {
+    public static func _fromPtrCallArgumentMaybeOptional(_ ptr: UnsafeRawPointer?) -> Self? {
+        guard let ptr else {
+            return nil
+        }
+        
+        guard let objectHandle = ptr.assumingMemoryBound(to: UnsafeRawPointer?.self).pointee else {
+            return nil
+        }
+        
+        let ret: Self? = lookupObject(nativeHandle: objectHandle, ownsRef: false)
+        return ret
+    }    
 }
 
-extension Variant: _GodotOptionalBridgeable {    
+extension Variant: _GodotOptionalBridgeable {
+    public static func _fromPtrCallArgumentMaybeOptional(_ ptr: UnsafeRawPointer?) -> Self? {
+        guard let ptr else {
+            return nil
+        }
+        
+        let content = ptr.assumingMemoryBound(to: VariantContent.self).pointee
+        return Self(copying: content)
+    }
+    
 }
 
 // Allows static dispatch for processing `Variant?` `Object?` types during  parsing callback ``Arguments`` or using them as arguments for invoking Godot functions.
@@ -531,8 +553,12 @@ extension Optional: _GodotBridgeable, VariantConvertible where Wrapped: _GodotOp
     @inlinable
     public static func fromNilOrThrow() -> Self { nil }
     
-    /// Internal API. Store this type into `ptrcall` return value.
-    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+    /// Internal API. Store this type into `ptrcall` convention return value.
+    public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
         // no-op
+    }
+    
+    public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Optional<Wrapped> {
+        Wrapped._fromPtrCallArgument(ptr)
     }
 }

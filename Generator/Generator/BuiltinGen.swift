@@ -922,9 +922,9 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                     self.init(variant)
                 }
                 
-                /// Internal API. Store this type into `ptrcall` return value.
+                /// Internal API. Store this type into `ptrcall` convention return value.
                 @inline(__always)                
-                public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {                    
+                public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {                    
                     withUnsafePointer(to: content) { pContent in
                         withUnsafePointer(to: UnsafeRawPointersN1(pContent)) { pArgs in
                             pArgs.withMemoryRebound(to: UnsafeRawPointer?.self, capacity: 1) { pArgs in
@@ -933,6 +933,26 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                         }                        
                     }                    
                 }
+                
+                /// Internal API. Reconstruct this type from `ptrcall` convention argument.
+                @inline(__always)                
+                public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+                    guard let ptr else {
+                        GD.printErr("`_fromPtrCallArgument` received null pointer")
+                        return Self()
+                    }
+                
+                    var content = \(typeName).zero
+                
+                    withUnsafePointer(to: UnsafeRawPointersN1(ptr)) { pArgs in
+                        pArgs.withMemoryRebound(to: UnsafeRawPointer?.self, capacity: 1) { pArgs in
+                            \(typeName).constructor_copy(&content, pArgs)
+                        }                            
+                    }
+                
+                    return Self(takingOver: content)
+                }
+                
                 """)
             } else {
                 p("""
@@ -978,11 +998,23 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                     }
                 }
                 
-                /// Internal API. Store this type into `ptrcall` return value.
+                /// Internal API. Store this type into `ptrcall` convention return value.
                 @inline(__always)
                 @inlinable
-                public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+                public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
                     ptr.assumingMemoryBound(to: Self.self).initialize(to: self)
+                }
+                
+                /// Internal API. Reconstruct this type from `ptrcall` convention argument.
+                @inline(__always)
+                @inlinable
+                public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+                    guard let ptr else {
+                        GD.printErr("`_fromPtrCallArgument` received null pointer")
+                        return Self()
+                    }
+                
+                    return ptr.assumingMemoryBound(to: Self.self).pointee
                 }
                 
                 """)

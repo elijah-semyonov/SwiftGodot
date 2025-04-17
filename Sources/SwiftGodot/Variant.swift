@@ -533,9 +533,23 @@ public final class Variant: Hashable, Equatable, CustomDebugStringConvertible, _
         toFastVariant()
     }
     
-    /// Internal API. Store this type into `ptrcall` return value.
-    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+    /// Internal API. Store this type into `ptrcall` convention return value.
+    public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
         gi.variant_new_copy(ptr, &content)
+    }
+    
+    public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Variant {
+        guard let ptr else {
+            GD.printErr("`_fromPtrCallArgument` received null pointer")
+            return 0.toVariant()
+        }
+        
+        guard let variant = Variant._fromPtrCallArgumentMaybeOptional(ptr) else {
+            GD.printErr("Received null Variant, expected non-null")
+            return 0.toVariant()
+        }
+        
+        return variant
     }
 }
 

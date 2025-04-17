@@ -69,6 +69,7 @@ extension GString: CustomStringConvertible, Hashable {
     }
     
     @inline(__always)
+    @usableFromInline
     static func toString(pContent: UnsafeRawPointer) -> String {
         let byteCount = gi.string_to_utf8_chars(pContent, nil, 0)
         return withUnsafeTemporaryAllocation(of: CChar.self, capacity: Int(byteCount + 1)) { buffer in

@@ -472,11 +472,22 @@ public final class ObjectCollection<Element>: Collection, ExpressibleByArrayLite
         return result
     }
     
-    /// Internal API. Store this type into `ptrcall` return value.
+    /// Internal API. Store this type into `ptrcall` convention return value.
     @inlinable
     @inline(__always)
-    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
-        array._copyIntoReturnValuePointer(ptr)
+    public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
+        array._intoPtrCallReturnValue(ptr)
+    }
+    
+    public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+        let array = GArray._fromPtrCallArgument(ptr)
+        
+        guard let array = Self(array) else {
+            GD.printErr("\(self) received incompatible array: \(array.debugDescription)")
+            return Self()
+        }
+        
+        return array
     }
 }
 
