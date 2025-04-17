@@ -205,6 +205,9 @@ public protocol _GodotBridgeable: VariantConvertible {
         hintStr: String?,
         usage: PropertyUsageFlags?
     ) -> PropInfo
+    
+    /// Internal API. Store this type into `ptrcall` return value.
+    func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer)
 }
 
 /// Internal API. Subset protocol for all Builtin Types.
@@ -322,6 +325,12 @@ public extension _GodotBridgeable where Self: Object {
             name: "",
             className: StringName(_godotTypeName)
         )
+    }
+    
+    /// Internal API. Store this type into `ptrcall` return value.
+    func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+        _refCountedRetain()
+        ptr.assumingMemoryBound(to: UnsafeRawPointer?.self).initialize(to: handle)
     }
 }
 
@@ -442,6 +451,13 @@ extension Int64: _GodotBridgeableBuiltin {
         
         return value
     }
+    
+    /// Internal API. Store this type into `ptrcall` return value.
+    @inline(__always)
+    @inlinable
+    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+        ptr.assumingMemoryBound(to: Self.self).initialize(to: self)
+    }
 }
 
 public extension BinaryInteger where Self: _GodotBridgeableBuiltin {
@@ -552,6 +568,13 @@ public extension BinaryInteger where Self: _GodotBridgeableBuiltin {
         } else {
             throw VariantConversionError.integerOverflow(requestedType: self, value: value)
         }
+    }
+    
+    /// Internal API. Store this type into `ptrcall` return value.
+    @inline(__always)
+    @inlinable
+    func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+        ptr.assumingMemoryBound(to: Int64.self).initialize(to: Int64(self))
     }
 }
 
@@ -673,6 +696,12 @@ extension Bool: _GodotBridgeableBuiltin {
             throw .unexpectedContent(parsing: self, from: variant)
         }
         return value
+    }
+    
+    /// Internal API. Store this type into `ptrcall` return value.
+    @inline(__always)
+    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+        ptr.assumingMemoryBound(to: GDExtensionBool.self).initialize(to: self ? 1 : 0)
     }
 }
 
@@ -813,6 +842,13 @@ extension String: _GodotBridgeableBuiltin {
         
         return value
     }
+    
+    @inline(__always)
+    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+        var content = GString.zero
+        gi.string_new_with_utf8_chars(&content, self)
+        ptr.assumingMemoryBound(to: GString.ContentType.self).initialize(to: content)
+    }
 }
 
 extension Double: _GodotBridgeableBuiltin {
@@ -906,6 +942,13 @@ extension Double: _GodotBridgeableBuiltin {
         }
         return value
     }
+    
+    /// Internal API. Store this type into `ptrcall` return value.
+    @inline(__always)
+    @inlinable
+    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+        ptr.assumingMemoryBound(to: Self.self).initialize(to: self)
+    }
 }
 
 public extension BinaryFloatingPoint where Self: VariantConvertible  {
@@ -973,6 +1016,13 @@ public extension BinaryFloatingPoint where Self: VariantConvertible  {
     @inlinable
     static func fromFastVariantOrThrow(_ variant: borrowing FastVariant) throws(VariantConversionError) -> Self {
         Self(try Double.fromFastVariantOrThrow(variant))
+    }
+    
+    /// Internal API. Store this type into `ptrcall` return value.
+    @inline(__always)
+    @inlinable
+    func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+        ptr.assumingMemoryBound(to: Double.self).initialize(to: Double(self))
     }
 }
 

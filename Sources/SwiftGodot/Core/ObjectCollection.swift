@@ -471,6 +471,13 @@ public final class ObjectCollection<Element>: Collection, ExpressibleByArrayLite
         
         return result
     }
+    
+    /// Internal API. Store this type into `ptrcall` return value.
+    @inlinable
+    @inline(__always)
+    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+        array._copyIntoReturnValuePointer(ptr)
+    }
 }
 
 

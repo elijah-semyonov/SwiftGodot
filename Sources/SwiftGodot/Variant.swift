@@ -538,6 +538,12 @@ public final class Variant: Hashable, Equatable, CustomDebugStringConvertible, _
     public func toFastVariant() -> FastVariant? {
         toFastVariant()
     }
+    
+    /// Internal API. Store this type into `ptrcall` return value.
+    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+        
+        ptr.assumingMemoryBound(to: VariantContent.self).initialize(to: content)
+    }
 }
 
 extension Variant? {

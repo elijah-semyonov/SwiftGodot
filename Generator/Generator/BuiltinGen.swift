@@ -79,8 +79,20 @@ func generateBuiltinConstants (_ p: Printer,
         if constant.description != "" {
             doc (p, bc, constant.description)
         }
-        p ("public static let \(snakeToCamel (constant.name)) = \(val)")
+        p ("public static let \(snakeToCamel(constant.name)) = \(val)")
     }
+}
+
+func isCopyConstructor(_ bc: JGodotBuiltinClass, _ ctor: JGodotConstructor) -> Bool {
+    guard
+        let arguments = ctor.arguments,
+        let first = arguments.first,
+        arguments.count == 1
+    else {
+        return false
+    }
+    
+    return first.type == bc.name 
 }
 
 func generateBuiltinCtors (_ p: Printer,
@@ -97,8 +109,14 @@ func generateBuiltinCtors (_ p: Printer,
         var args = ""
         var visibility = "public"
         
-        let ptrName = "constructor\(m.index)"
-        p ("static var \(ptrName): GDExtensionPtrConstructor = gi.variant_get_ptr_constructor (\(typeEnum), \(m.index))!\n")
+        let ptrName: String
+        if isCopyConstructor(bc, m) {
+            ptrName = "constructor_copy"
+        } else {
+            ptrName = "constructor\(m.index)"
+        }
+        
+        p ("static let \(ptrName): GDExtensionPtrConstructor = gi.variant_get_ptr_constructor(\(typeEnum), \(m.index))!\n")
         
         for arg in m.arguments ?? [] {
             if args != "" { args += ", " }
@@ -670,15 +688,10 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                 }
             }
             if bc.name == "StringName" {
-                // TODO: This is a little brittle, because I am
-                // hardcoding the constructor1 here, it should
-                // really produce this when it matches the kind
-                // directly to be the one that takes a StringName
-                // parameter
                 p("""
                 public init(fromPtr ptr: UnsafeRawPointer?) {
                     withUnsafePointer(to: ptr) { pArgs in
-                        StringName.constructor1(&content, pArgs) 
+                        StringName.constructor_copy(&content, pArgs) 
                     }
                 }
                 """)
@@ -749,17 +762,12 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                 p ("// Convenience type that matches the build configuration storage needs")
                 p ("public typealias ContentType = \(storage)")
                 builtinClassStorage [bc.name] = storage
-                // TODO: This is a little brittle, because I am
-                // hardcoding the constructor1 here, it should
-                // really produce this when it matches the kind
-                // directly to be the one that takes the same
-                // parameter                
                 p("""
                 // Used to construct objects on virtual proxies
                 public required init(content proxyContent: ContentType) {
                     withUnsafePointer(to: proxyContent) { pContent in
                         withUnsafePointer(to: pContent) { pArgs in
-                            \(typeName).constructor1(&content, pArgs)
+                            \(typeName).constructor_copy(&content, pArgs)
                         }
                     }
                 }
@@ -913,6 +921,18 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                 public convenience init?(_ variant: borrowing FastVariant?) {                    
                     self.init(variant)
                 }
+                
+                /// Internal API. Store this type into `ptrcall` return value.
+                @inline(__always)                
+                public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {                    
+                    withUnsafePointer(to: content) { pContent in
+                        withUnsafePointer(to: UnsafeRawPointersN1(pContent)) { pArgs in
+                            pArgs.withMemoryRebound(to: UnsafeRawPointer?.self, capacity: 1) { pArgs in
+                                \(typeName).constructor_copy(ptr, pArgs)
+                            }                            
+                        }                        
+                    }                    
+                }
                 """)
             } else {
                 p("""
@@ -956,6 +976,13 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                     case .none:
                         return nil
                     }
+                }
+                
+                /// Internal API. Store this type into `ptrcall` return value.
+                @inline(__always)
+                @inlinable
+                public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+                    ptr.assumingMemoryBound(to: Self.self).initialize(to: self)
                 }
                 
                 """)

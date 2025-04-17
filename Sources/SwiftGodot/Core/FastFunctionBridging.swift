@@ -7,13 +7,19 @@
 
 @_implementationOnly import GDExtension
 
-public typealias BridgedFunction = (
+public typealias _BridgedCallFunction = (
     UnsafeRawPointer?, // pInstance
     borrowing Arguments
 ) -> FastVariant?
 
-struct BridgedFunctionInfo {
-    let function: BridgedFunction
+public typealias _BridgedPtrCallFunction = (
+    UnsafeRawPointer?, // pInstance
+    borrowing Arguments,
+    UnsafeMutableRawPointer? //pResult
+) -> Void
+
+struct BridgedCallFunctionInfo {
+    let function: _BridgedCallFunction
     let returnedType: Variant.GType?
 }
 
@@ -47,8 +53,8 @@ public func _registerPropertyWithGetterSetter(
     info: PropInfo,
     getterName: StringName,
     setterName: StringName,
-    getterFunction: @escaping BridgedFunction,
-    setterFunction: @escaping BridgedFunction
+    getterFunction: @escaping _BridgedCallFunction,
+    setterFunction: @escaping _BridgedCallFunction
 ) {
     _registerMethod(className: className, name: getterName, flags: .default, returnValue: info, arguments: [], function: getterFunction)
     _registerMethod(className: className, name: setterName, flags: .default, returnValue: nil, arguments: [info], function: setterFunction)
@@ -61,7 +67,7 @@ public func _registerMethod(
     flags: MethodFlags,
     returnValue: PropInfo?,
     arguments: [PropInfo],
-    function: @escaping BridgedFunction
+    function: @escaping _BridgedCallFunction
 ) {
     let argPtr = UnsafeMutablePointer<GDExtensionPropertyInfo>.allocate(capacity: arguments.count)
     defer { argPtr.deallocate() }
@@ -80,7 +86,7 @@ public func _registerMethod(
     }
     
     // TODO: leaks, never deallocated
-    let userdata = UnsafeMutablePointer<BridgedFunctionInfo>.allocate(capacity: 1)
+    let userdata = UnsafeMutablePointer<BridgedCallFunctionInfo>.allocate(capacity: 1)
     userdata.initialize(to: .init(function: function, returnedType: returnValue?.propertyType))
     
     withUnsafeMutablePointer(to: &name.content) { namePtr in
@@ -135,7 +141,7 @@ private func call_func(
     guard let udata else { return }
     guard let classInstance else { return }
         
-    let finfo = udata.assumingMemoryBound(to: BridgedFunctionInfo.self).pointee
+    let finfo = udata.assumingMemoryBound(to: BridgedCallFunctionInfo.self).pointee
     
     let ret = withArguments(pargs: variantArgs, argc: argc) { arguments in
         finfo.function(classInstance, arguments)

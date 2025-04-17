@@ -436,6 +436,13 @@ public final class VariantCollection<Element>: Collection, ExpressibleByArrayLit
             usage: .default
         )
     }
+    
+    /// Internal API. Store this type into `ptrcall` return value.
+    @inlinable
+    @inline(__always)
+    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+        array._copyIntoReturnValuePointer(ptr)
+    }
 }
 
 public extension Variant {

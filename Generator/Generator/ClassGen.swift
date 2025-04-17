@@ -678,12 +678,12 @@ func processClass (cdef: JGodotExtensionAPIClass, outputDir: String?) async {
             }
             
             /// Internal API
-            public func _macroRcRef() {
+            public func _refCountedRetain() {
                 // no-op, needed for virtual dispatch when RefCounted is stored as Object
             }
             
             /// Internal API
-            public func _macroRcUnref() {
+            public func _refCountedRelease() {
                 // no-op, needed for virtual dispatch when RefCounted is stored as Object
             }
             """)
@@ -691,12 +691,12 @@ func processClass (cdef: JGodotExtensionAPIClass, outputDir: String?) async {
         
         if cdef.name == "RefCounted" {
             p("/// Internal API")
-            p("public final override func _macroRcRef()") {
+            p("public final override func _refCountedRetain()") {
                 p("reference()")
             }
             
             p("/// Internal API")
-            p("public final override func _macroRcUnref()") {
+            p("public final override func _refCountedRelease()") {
                 p("unreference()")
             }
         }

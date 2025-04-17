@@ -101,9 +101,9 @@ public func _invokeSetter<T>(
 ) -> FastVariant? where T: Object {
     do {
         let value = try arguments.argument(ofType: T.self, at: 0)
-        value._macroRcRef()
+        value._refCountedRetain()
         set(value)
-        old._macroRcUnref()
+        old._refCountedRelease()
     } catch {
         GD.printErr("\(error.description)")
     }
@@ -125,15 +125,15 @@ public func _invokeSetter<T>(
         
         guard let variant = variantOrNil else {
             // Expected nil, set to nil
-            old?._macroRcUnref()
+            old?._refCountedRelease()
             set(nil)
             return nil
         }
                 
         let value = try T.fromVariantOrThrow(variant)
-        value._macroRcRef()
+        value._refCountedRetain()
         set(value)
-        old?._macroRcUnref()
+        old?._refCountedRelease()
     } catch let error as ArgumentAccessError {
         GD.printErr(error.description)
     } catch let error as VariantConversionError {

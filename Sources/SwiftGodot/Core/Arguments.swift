@@ -530,4 +530,9 @@ extension Optional: _GodotBridgeable, VariantConvertible where Wrapped: _GodotOp
     @inline(__always)
     @inlinable
     public static func fromNilOrThrow() -> Self { nil }
+    
+    /// Internal API. Store this type into `ptrcall` return value.
+    public func _copyIntoReturnValuePointer(_ ptr: UnsafeMutableRawPointer) {
+        // no-op
+    }
 }
