@@ -25,13 +25,20 @@ class Thing: SwiftGodot.Object {
 
     func get_some() -> Int64 { 10 }
 
-    static func _mproxy_get_some(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
+    static func _mproxy_call_get_some(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
         guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
-            SwiftGodot.GD.printErr("Error calling `get_some`: failed to unwrap instance \(pInstance)")
+            SwiftGodot.GD.printErr("Error calling `get_some`: failed to unwrap instance \(String(describing: pInstance))")
             return nil
         }
         return SwiftGodot._wrapResult(object.get_some())
+    }
 
+    static func _mproxy_ptrcall_get_some(pInstance: UnsafeRawPointer?, arguments: UnsafePointer<UnsafeRawPointer?>?, pReturnValue: UnsafeMutableRawPointer?) {
+        guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
+            SwiftGodot.GD.printErr("Error calling `get_some`: failed to unwrap instance \(String(describing: pInstance))")
+            return
+        }
+        SwiftGodot._intoPtrCallReturnValue(object.get_some(), pReturnValue)
     }
 
     override open class var classInitializer: Void {
@@ -65,7 +72,7 @@ class Thing: SwiftGodot.Object {
             arguments: [
 
             ],
-            function: Thing._mproxy_get_some
+            function: Thing._mproxy_call_get_some
         )
     } ()
 }

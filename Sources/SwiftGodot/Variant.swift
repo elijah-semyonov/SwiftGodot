@@ -544,7 +544,7 @@ public final class Variant: Hashable, Equatable, CustomDebugStringConvertible, _
             return 0.toVariant()
         }
         
-        guard let variant = Variant._fromPtrCallArgumentMaybeOptional(ptr) else {
+        guard let variant = Variant._fromPtrCallArgumentOrNil(ptr) else {
             GD.printErr("Received null Variant, expected non-null")
             return 0.toVariant()
         }

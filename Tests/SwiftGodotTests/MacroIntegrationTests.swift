@@ -72,4 +72,20 @@ final class MacroIntegrationTests: GodotTestCase {
         
         XCTAssertEqual(_invokeGetter(closure)?.gtype, .callable)
     }
+    
+    func testPtrCallInt() {
+        var storage = Int64()
+        
+        _intoPtrCallReturnValue(Int(42), &storage)
+        
+        XCTAssertEqual(storage, 42)
+    }
+    
+    func testPtrCallBool() {
+        var storage = Double()
+        
+        _intoPtrCallReturnValue(Double.pi, &storage)
+        
+        XCTAssertEqual(storage, .pi)
+    }
 }

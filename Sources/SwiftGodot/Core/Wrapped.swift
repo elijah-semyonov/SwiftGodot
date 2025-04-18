@@ -592,6 +592,7 @@ func handleRef<T: Wrapped>(staticType: T.Type, object: Wrapped?, ownsRef: Bool, 
     }
 }
 
+@usableFromInline
 func lookupObject<T: Object> (nativeHandle: UnsafeRawPointer, ownsRef: Bool) -> T? {
     if let a = objectFromHandle(nativeHandle: nativeHandle) {
         handleRef(staticType: T.self, object: a, ownsRef: ownsRef, unref: true)

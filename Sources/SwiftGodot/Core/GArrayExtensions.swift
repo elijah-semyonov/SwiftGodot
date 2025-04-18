@@ -65,6 +65,28 @@ extension GArray: CustomDebugStringConvertible {
         }
     }
     
+    /// Appends an element at the end of the array (alias of ``pushBack(value:)``).
+    @inline(__always)    
+    public final func append(_ value: borrowing FastVariant?) {
+        var variantContent: VariantContent
+        switch value {
+        case .some(let variant):
+            variantContent = variant.content
+        case .none:
+            variantContent = .zero
+        }
+        
+        withUnsafePointer(to: variantContent) { pArg0 in
+            withUnsafePointer(to: UnsafeRawPointersN1(pArg0)) { pArgs in
+                pArgs.withMemoryRebound(to: UnsafeRawPointer?.self, capacity: 1) { pArgs in
+                    GArray.method_append(&content, pArgs, nil, 1)
+                }
+                
+            }
+        }
+    }
+    
+    
     /// Borrows ``FastVariant`` at `index` to perform some action on it.
     public func withFastVariant<R>(at index: Int, _ body: (borrowing FastVariant?) -> R?) -> R? {
         guard let ret = gi.array_operator_index(&content, Int64 (index)) else {

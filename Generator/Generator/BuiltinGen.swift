@@ -515,6 +515,9 @@ func generateBuiltinMethods (_ p: Printer,
         let methodName = escapeSwift(snakeToCamel(m.name))
         let customImplementation = customBuiltinMethodImplementations[MethodSignature(typeName: bc.name, methodName: methodName)]
         
+        if bc.name == "Array", m.name == "append" {
+            p("@_disfavoredOverload") // prefer FastVariant overload when `nil` is pushed
+        }
         p ("public\(keyword) func \(methodName)(\(args))\(retSig)") {
             if customImplementation != nil {
                 p("#if !CUSTOM_BUILTIN_IMPLEMENTATIONS")
@@ -1010,8 +1013,7 @@ func generateBuiltinClasses (values: [JGodotBuiltinClass], outputDir: String?) a
                 @inlinable
                 public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
                     guard let ptr else {
-                        GD.printErr("`_fromPtrCallArgument` received null pointer")
-                        return Self()
+                        fatalError("`_fromPtrCallArgument` received null pointer")                        
                     }
                 
                     return ptr.assumingMemoryBound(to: Self.self).pointee

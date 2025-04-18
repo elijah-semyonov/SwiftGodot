@@ -14,12 +14,13 @@ public typealias _BridgedCallFunction = (
 
 public typealias _BridgedPtrCallFunction = (
     UnsafeRawPointer?, // pInstance
-    borrowing Arguments,
+    UnsafePointer<UnsafeRawPointer?>?, // pArgs
     UnsafeMutableRawPointer? //pResult
 ) -> Void
 
 struct BridgedCallFunctionInfo {
     let function: _BridgedCallFunction
+    let ptrcallFunction: _BridgedPtrCallFunction?
     let returnedType: Variant.GType?
 }
 
@@ -67,7 +68,8 @@ public func _registerMethod(
     flags: MethodFlags,
     returnValue: PropInfo?,
     arguments: [PropInfo],
-    function: @escaping _BridgedCallFunction
+    function: @escaping _BridgedCallFunction,
+    ptrcallFunction: _BridgedPtrCallFunction? = nil
 ) {
     let argPtr = UnsafeMutablePointer<GDExtensionPropertyInfo>.allocate(capacity: arguments.count)
     defer { argPtr.deallocate() }
@@ -87,15 +89,23 @@ public func _registerMethod(
     
     // TODO: leaks, never deallocated
     let userdata = UnsafeMutablePointer<BridgedCallFunctionInfo>.allocate(capacity: 1)
-    userdata.initialize(to: .init(function: function, returnedType: returnValue?.propertyType))
+    userdata.initialize(to: .init(function: function, ptrcallFunction: ptrcallFunction, returnedType: returnValue?.propertyType))
+    
+    let ptrCallConventionInvocationOrNil: GDExtensionClassMethodPtrCall?
+    
+    if ptrcallFunction == nil {
+        ptrCallConventionInvocationOrNil = nil
+    } else {
+        ptrCallConventionInvocationOrNil = ptrCallConventionInvocation
+    }
     
     withUnsafeMutablePointer(to: &name.content) { namePtr in
         withUnsafeMutablePointer(to: &retInfo) { retInfoPtr in
         var info = GDExtensionClassMethodInfo (
             name: namePtr,
             method_userdata: userdata,
-            call_func: call_func,
-            ptrcall_func: nil, //ClassInfo.bind_call_ptr,
+            call_func: callConventionInvocation,
+            ptrcall_func: ptrCallConventionInvocationOrNil, //ClassInfo.bind_call_ptr,
             method_flags: UInt32 (flags.rawValue),
             has_return_value: GDExtensionBool (returnValue != nil ? 1 : 0),
             return_value_info: retInfoPtr,
@@ -130,7 +140,7 @@ public func _unwrap<T: Object>(
     return object
 }
 
-private func call_func(
+private func callConventionInvocation(
     _ udata: UnsafeMutableRawPointer?,
     classInstance: UnsafeMutableRawPointer?,
     variantArgs: UnsafePointer<UnsafeRawPointer?>?,
@@ -138,7 +148,10 @@ private func call_func(
     returnValue: UnsafeMutableRawPointer?,
     r_error: UnsafeMutablePointer<GDExtensionCallError>?
 ) {
-    guard let udata else { return }
+    guard let udata else {
+        fatalError("Invariant violated: invocation user data with Swift callbacks should always be present")
+    }
+    
     guard let classInstance else { return }
         
     let finfo = udata.assumingMemoryBound(to: BridgedCallFunctionInfo.self).pointee
@@ -164,4 +177,24 @@ private func call_func(
         // Ownership over variant is transferred to Godot
         ret.unsafelyForget()
     }
+}
+
+private func ptrCallConventionInvocation(
+    _ udata: UnsafeMutableRawPointer?,
+    classInstance: UnsafeMutableRawPointer?,
+    variantArgs: UnsafePointer<UnsafeRawPointer?>?,
+    returnValue: UnsafeMutableRawPointer?,
+) {
+    guard let udata else {
+        fatalError("Invariant violated: invocation user data with Swift callbacks should always be present")
+    }
+    guard let classInstance else { return }
+        
+    let finfo = udata.assumingMemoryBound(to: BridgedCallFunctionInfo.self).pointee
+    
+    guard let function = finfo.ptrcallFunction else {
+        fatalError("Invariant violated: ptrCallConventionInvocation should never be executed if `_BridgedPtrCallFunction` was not provided")
+    }
+    
+    function(classInstance, variantArgs, returnValue)
 }

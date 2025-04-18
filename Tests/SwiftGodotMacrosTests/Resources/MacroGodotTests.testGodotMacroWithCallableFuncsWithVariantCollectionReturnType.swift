@@ -5,13 +5,20 @@ class SomeNode: Node {
         return result
     }
 
-    static func _mproxy_getIntegerCollection(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
+    static func _mproxy_call_getIntegerCollection(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
         guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
-            SwiftGodot.GD.printErr("Error calling `getIntegerCollection`: failed to unwrap instance \(pInstance)")
+            SwiftGodot.GD.printErr("Error calling `getIntegerCollection`: failed to unwrap instance \(String(describing: pInstance))")
             return nil
         }
         return SwiftGodot._wrapResult(object.getIntegerCollection())
+    }
 
+    static func _mproxy_ptrcall_getIntegerCollection(pInstance: UnsafeRawPointer?, arguments: UnsafePointer<UnsafeRawPointer?>?, pReturnValue: UnsafeMutableRawPointer?) {
+        guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
+            SwiftGodot.GD.printErr("Error calling `getIntegerCollection`: failed to unwrap instance \(String(describing: pInstance))")
+            return
+        }
+        SwiftGodot._intoPtrCallReturnValue(object.getIntegerCollection(), pReturnValue)
     }
 
     override open class var classInitializer: Void {
@@ -31,7 +38,7 @@ class SomeNode: Node {
             arguments: [
 
             ],
-            function: SomeNode._mproxy_getIntegerCollection
+            function: SomeNode._mproxy_call_getIntegerCollection
         )
     } ()
 }

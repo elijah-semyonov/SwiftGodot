@@ -31,7 +31,7 @@ public enum ClassBehavior: Int {
 /// can be called by scripts in other languages.
 ///
 /// The parameters to the function must be parameters that can be wrapped in a ``Variant`` structure
-@attached(peer, names: prefixed(_mproxy_))
+@attached(peer, names: prefixed(_mproxy_call_), prefixed(_mproxy_ptrcall_))
 public macro Callable() = #externalMacro(module: "SwiftGodotMacroLibrary", type: "GodotCallable")
 
 /// Exposes a property or variable to the Godot runtime

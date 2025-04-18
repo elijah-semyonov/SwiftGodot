@@ -448,8 +448,7 @@ public final class VariantCollection<Element>: Collection, ExpressibleByArrayLit
         let array = GArray._fromPtrCallArgument(ptr)
         
         guard let array = Self(array) else {
-            GD.printErr("\(self) received incompatible array: \(array.debugDescription)")
-            return Self()
+            fatalError("\(self) received incompatible array: \(array.debugDescription)")
         }
         
         return array

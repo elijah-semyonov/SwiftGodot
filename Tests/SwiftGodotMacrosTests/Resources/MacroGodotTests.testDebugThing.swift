@@ -5,20 +5,31 @@ class DebugThing: SwiftGodot.Object {
         return nil
     }
 
-    static func _mproxy_do_thing(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
+    static func _mproxy_call_do_thing(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
         do { // safe arguments access scope
             guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
-                SwiftGodot.GD.printErr("Error calling `do_thing`: failed to unwrap instance \(pInstance)")
+                SwiftGodot.GD.printErr("Error calling `do_thing`: failed to unwrap instance \(String(describing: pInstance))")
                 return nil
             }
             let arg0 = try arguments.argument(ofType: SwiftGodot.Variant?.self, at: 0)
             return SwiftGodot._wrapResult(object.do_thing(value: arg0))
-
         } catch {
             SwiftGodot.GD.printErr("Error calling `do_thing`: \(error.description)")
         }
 
         return nil
+    }
+
+    static func _mproxy_ptrcall_do_thing(pInstance: UnsafeRawPointer?, arguments: UnsafePointer<UnsafeRawPointer?>?, pReturnValue: UnsafeMutableRawPointer?) {
+        guard let arguments else {
+            fatalError("do_thing expected 1 argument(s), received null pointer arguments buffer")
+        }
+        guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
+                SwiftGodot.GD.printErr("Error calling `do_thing`: failed to unwrap instance \(String(describing: pInstance))")
+                return
+            }
+        let arg0 = SwiftGodot._fromPtrCallArgument(SwiftGodot.Variant?.self, arguments[0])
+        SwiftGodot._intoPtrCallReturnValue(object.do_thing(value: arg0), pReturnValue)
     }
 
     override open class var classInitializer: Void {
@@ -39,7 +50,7 @@ class DebugThing: SwiftGodot.Object {
             arguments: [
                 SwiftGodot._argumentPropInfo(SwiftGodot.Variant?.self, name: "value")
             ],
-            function: DebugThing._mproxy_do_thing
+            function: DebugThing._mproxy_call_do_thing
         )
     } ()
 }

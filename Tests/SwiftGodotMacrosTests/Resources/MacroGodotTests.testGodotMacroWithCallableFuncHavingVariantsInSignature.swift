@@ -4,20 +4,31 @@ private class TestNode: Node {
         return variant
     }
 
-    static func _mproxy_foo(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
+    static func _mproxy_call_foo(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
         do { // safe arguments access scope
             guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
-                SwiftGodot.GD.printErr("Error calling `foo`: failed to unwrap instance \(pInstance)")
+                SwiftGodot.GD.printErr("Error calling `foo`: failed to unwrap instance \(String(describing: pInstance))")
                 return nil
             }
             let arg0 = try arguments.argument(ofType: Variant?.self, at: 0)
             return SwiftGodot._wrapResult(object.foo(variant: arg0))
-
         } catch {
             SwiftGodot.GD.printErr("Error calling `foo`: \(error.description)")
         }
 
         return nil
+    }
+
+    static func _mproxy_ptrcall_foo(pInstance: UnsafeRawPointer?, arguments: UnsafePointer<UnsafeRawPointer?>?, pReturnValue: UnsafeMutableRawPointer?) {
+        guard let arguments else {
+            fatalError("foo expected 1 argument(s), received null pointer arguments buffer")
+        }
+        guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
+                SwiftGodot.GD.printErr("Error calling `foo`: failed to unwrap instance \(String(describing: pInstance))")
+                return
+            }
+        let arg0 = SwiftGodot._fromPtrCallArgument(Variant?.self, arguments[0])
+        SwiftGodot._intoPtrCallReturnValue(object.foo(variant: arg0), pReturnValue)
     }
 
     override open class var classInitializer: Void {
@@ -37,7 +48,7 @@ private class TestNode: Node {
             arguments: [
                 SwiftGodot._argumentPropInfo(Variant?.self, name: "variant")
             ],
-            function: TestNode._mproxy_foo
+            function: TestNode._mproxy_call_foo
         )
     } ()
 }

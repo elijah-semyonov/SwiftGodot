@@ -470,11 +470,18 @@ public extension VariantConvertible {
 /// It's used for conditional extension of Optional.
 /// This is a workaround for Swift inability to have multiple conditional extensions for one type (Optional in our case).
 public protocol _GodotOptionalBridgeable: _GodotBridgeable {
-    static func _fromPtrCallArgumentMaybeOptional(_ ptr: UnsafeRawPointer?) -> Self?
+    /// Unwrap self from `ptrcall` argument. Can be optional in this case.
+    static func _fromPtrCallArgumentOrNil(_ ptr: UnsafeRawPointer?) -> Self?
+    
+    /// Store representation of nil self in `ptrcall` return value pointer.
+    static func _nilIntoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer?)
 }
 
 extension Object: _GodotOptionalBridgeable {
-    public static func _fromPtrCallArgumentMaybeOptional(_ ptr: UnsafeRawPointer?) -> Self? {
+    /// Unwrap self from `ptrcall` argument. Can be `nil` in this case.
+    @inline(__always)
+    @inlinable
+    public static func _fromPtrCallArgumentOrNil(_ ptr: UnsafeRawPointer?) -> Self? {
         guard let ptr else {
             return nil
         }
@@ -485,11 +492,26 @@ extension Object: _GodotOptionalBridgeable {
         
         let ret: Self? = lookupObject(nativeHandle: objectHandle, ownsRef: false)
         return ret
-    }    
+    }
+    
+    /// Store representation of nil self in `ptrcall` return value pointer.
+    @inline(__always)
+    @inlinable
+    public static func _nilIntoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer?) {
+        guard let ptr else {
+            return
+        }
+        
+        // Write null pointer
+        ptr.assumingMemoryBound(to: UnsafeRawPointer?.self).pointee = nil
+    }
 }
 
 extension Variant: _GodotOptionalBridgeable {
-    public static func _fromPtrCallArgumentMaybeOptional(_ ptr: UnsafeRawPointer?) -> Self? {
+    /// Unwrap self from `ptrcall` argument. Can be `nil` in this case.
+    @inline(__always)
+    @inlinable
+    public static func _fromPtrCallArgumentOrNil(_ ptr: UnsafeRawPointer?) -> Self? {
         guard let ptr else {
             return nil
         }
@@ -498,6 +520,17 @@ extension Variant: _GodotOptionalBridgeable {
         return Self(copying: content)
     }
     
+    /// Store representation of nil self in `ptrcall` return value pointer.
+    @inline(__always)
+    @inlinable
+    public static func _nilIntoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer?) {
+        guard let ptr else {
+            return
+        }
+        
+        // Write zero content
+        ptr.assumingMemoryBound(to: VariantContent.self).pointee = .zero
+    }
 }
 
 // Allows static dispatch for processing `Variant?` `Object?` types during  parsing callback ``Arguments`` or using them as arguments for invoking Godot functions.
@@ -543,7 +576,7 @@ extension Optional: _GodotBridgeable, VariantConvertible where Wrapped: _GodotOp
     
     @inline(__always)
     @inlinable
-    public static func fromFastVariantOrThrow(_ variant: borrowing FastVariant) throws(VariantConversionError) -> Optional<Wrapped> {
+    public static func fromFastVariantOrThrow(_ variant: borrowing FastVariant) throws(VariantConversionError) -> Self {
         try Wrapped.fromFastVariantOrThrow(variant)
     }
         
@@ -555,10 +588,14 @@ extension Optional: _GodotBridgeable, VariantConvertible where Wrapped: _GodotOp
     
     /// Internal API. Store this type into `ptrcall` convention return value.
     public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
-        // no-op
+        if let self {
+            self._intoPtrCallReturnValue(ptr)
+        } else {
+            Wrapped._nilIntoPtrCallReturnValue(ptr)
+        }
     }
     
-    public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Optional<Wrapped> {
-        Wrapped._fromPtrCallArgument(ptr)
+    public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+        Wrapped._fromPtrCallArgumentOrNil(ptr)
     }
 }

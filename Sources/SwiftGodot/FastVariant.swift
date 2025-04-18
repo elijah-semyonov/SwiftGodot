@@ -318,6 +318,49 @@ public struct FastVariant: ~Copyable {
             constructor(pPayload, pVariantContent)
         }
     }
+    
+    /// Internal API. Store this type into `ptrcall` convention return value.
+    @inline(__always)
+    @inlinable
+    public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
+        var content = content
+        gi.variant_new_copy(ptr, &content)
+    }
+    
+    /// Store representation of nil self in `ptrcall` return value pointer.
+    @inline(__always)
+    @inlinable
+    public static func _nilIntoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer?) {
+        guard let ptr else {
+            return
+        }
+        
+        // Write zero content
+        ptr.assumingMemoryBound(to: VariantContent.self).pointee = .zero
+    }
+    
+    
+    /// Unwrap self from `ptrcall` argument. Can be `nil` in this case.
+    @inline(__always)
+    @inlinable
+    public static func _fromPtrCallArgumentOrNil(_ ptr: UnsafeRawPointer?) -> Self? {
+        guard let ptr else {
+            return nil
+        }
+        
+        let content = ptr.assumingMemoryBound(to: VariantContent.self).pointee
+        return Self(copying: content)
+    }
+    
+    @inline(__always)
+    @inlinable
+    public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+        if let variant = _fromPtrCallArgumentOrNil(ptr) {
+            return variant
+        } else {
+            fatalError("Can't unwrap \(self) from argument pointer, it's either a null pointer or `nil` content variant")
+        }
+    }
 }
 
 extension Optional where Wrapped == FastVariant, Wrapped: ~Copyable {
@@ -333,5 +376,23 @@ extension Optional where Wrapped == FastVariant, Wrapped: ~Copyable {
     @inlinable
     public func to<T>(_ type: T.Type = T.self) -> T? where T: Object {
         type.fromFastVariant(self)
+    }
+    
+    /// Internal API. Store this type into `ptrcall` convention return value.
+    @inline(__always)
+    @inlinable
+    public func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
+        switch self {
+        case .some(let variant):
+            variant._intoPtrCallReturnValue(ptr)
+        case .none:
+            FastVariant._nilIntoPtrCallReturnValue(ptr)
+        }
+    }
+    
+    @inline(__always)
+    @inlinable
+    public static func _fromPtrCallArgument(_ ptr: UnsafeRawPointer?) -> Self {
+        FastVariant._fromPtrCallArgumentOrNil(ptr)
     }
 }

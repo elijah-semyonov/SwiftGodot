@@ -63,14 +63,14 @@ public func _wrapResult<T>(_ value: [T]) -> FastVariant? where T: _GodotBridgeab
 @inline(__always)
 @inlinable
 public func _wrapResult<T>(_ value: ObjectCollection<T>) -> FastVariant? where T: _GodotBridgeable {
-    value.array.toFastVariant()
+    value.toFastVariant()
 }
 
 /// Internal API. VariantCollection.
 @inline(__always)
 @inlinable
 public func _wrapResult<T>(_ value: VariantCollection<T>) -> FastVariant? where T: _GodotBridgeable {
-    value.array.toFastVariant()
+    value.toFastVariant()
 }
 
 /// Internal API. Void.

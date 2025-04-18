@@ -1108,7 +1108,7 @@ public extension BinaryFloatingPoint where Self: VariantConvertible  {
     /// Internal API. Store this type into `ptrcall` convention return value.
     @inline(__always)
     @inlinable
-    func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {
+    func _intoPtrCallReturnValue(_ ptr: UnsafeMutableRawPointer) {        
         ptr.assumingMemoryBound(to: Double.self).initialize(to: Double(self))
     }
     

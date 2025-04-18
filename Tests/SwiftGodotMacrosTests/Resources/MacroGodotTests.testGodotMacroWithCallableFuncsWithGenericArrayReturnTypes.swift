@@ -4,25 +4,39 @@ class CallableCollectionsNode: Node {
         [1, 2, 3, 4]
     }
 
-    static func _mproxy_get_ages(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
+    static func _mproxy_call_get_ages(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
         guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
-            SwiftGodot.GD.printErr("Error calling `get_ages`: failed to unwrap instance \(pInstance)")
+            SwiftGodot.GD.printErr("Error calling `get_ages`: failed to unwrap instance \(String(describing: pInstance))")
             return nil
         }
         return SwiftGodot._wrapResult(object.get_ages())
+    }
 
+    static func _mproxy_ptrcall_get_ages(pInstance: UnsafeRawPointer?, arguments: UnsafePointer<UnsafeRawPointer?>?, pReturnValue: UnsafeMutableRawPointer?) {
+        guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
+            SwiftGodot.GD.printErr("Error calling `get_ages`: failed to unwrap instance \(String(describing: pInstance))")
+            return
+        }
+        SwiftGodot._intoPtrCallReturnValue(object.get_ages(), pReturnValue)
     }
     func get_markers() -> Array<Marker3D> {
         [.init(), .init(), .init()]
     }
 
-    static func _mproxy_get_markers(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
+    static func _mproxy_call_get_markers(pInstance: UnsafeRawPointer?, arguments: borrowing SwiftGodot.Arguments) -> SwiftGodot.FastVariant? {
         guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
-            SwiftGodot.GD.printErr("Error calling `get_markers`: failed to unwrap instance \(pInstance)")
+            SwiftGodot.GD.printErr("Error calling `get_markers`: failed to unwrap instance \(String(describing: pInstance))")
             return nil
         }
         return SwiftGodot._wrapResult(object.get_markers())
+    }
 
+    static func _mproxy_ptrcall_get_markers(pInstance: UnsafeRawPointer?, arguments: UnsafePointer<UnsafeRawPointer?>?, pReturnValue: UnsafeMutableRawPointer?) {
+        guard let object = SwiftGodot._unwrap(self, pInstance: pInstance) else {
+            SwiftGodot.GD.printErr("Error calling `get_markers`: failed to unwrap instance \(String(describing: pInstance))")
+            return
+        }
+        SwiftGodot._intoPtrCallReturnValue(object.get_markers(), pReturnValue)
     }
 
     override open class var classInitializer: Void {
@@ -42,7 +56,7 @@ class CallableCollectionsNode: Node {
             arguments: [
 
             ],
-            function: CallableCollectionsNode._mproxy_get_ages
+            function: CallableCollectionsNode._mproxy_call_get_ages
         )
         SwiftGodot._registerMethod(
             className: className,
@@ -52,7 +66,7 @@ class CallableCollectionsNode: Node {
             arguments: [
 
             ],
-            function: CallableCollectionsNode._mproxy_get_markers
+            function: CallableCollectionsNode._mproxy_call_get_markers
         )
     } ()
 }

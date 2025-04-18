@@ -43,25 +43,6 @@ public func _invokeGetter<each Argument: VariantConvertible, Result: VariantConv
     }.toFastVariant()
 }
 
-/// Internal API.  VariantCollection.
-@inline(__always)
-@inlinable
-public func _invokeGetter<T>(
-    _ value: VariantCollection<T>
-) -> FastVariant? where T: _GodotBridgeableBuiltin {
-    value.array.toFastVariant()
-}
-
-
-/// Internal API.  ObjectCollection.
-@inline(__always)
-@inlinable
-public func _invokeGetter<T>(
-    _ value: ObjectCollection<T>
-) -> FastVariant? where T: Object {
-    value.array.toFastVariant()
-}
-
 // MARK: Failures with diagnostics
 
 /// Internal API.  Swift Array.
