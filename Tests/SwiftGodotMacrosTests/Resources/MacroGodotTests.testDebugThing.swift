@@ -50,7 +50,8 @@ class DebugThing: SwiftGodot.Object {
             arguments: [
                 SwiftGodot._argumentPropInfo(SwiftGodot.Variant?.self, name: "value")
             ],
-            function: DebugThing._mproxy_call_do_thing
+            function: DebugThing._mproxy_call_do_thing,
+            ptrcallFunction: DebugThing._mproxy_ptrcall_do_thing,
         )
     } ()
 }

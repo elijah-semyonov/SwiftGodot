@@ -176,7 +176,8 @@ class Castro: Node {
             arguments: [
 
             ],
-            function: Castro._mproxy_call_deleteEpisode
+            function: Castro._mproxy_call_deleteEpisode,
+            ptrcallFunction: Castro._mproxy_ptrcall_deleteEpisode,
         )
         SwiftGodot._registerMethod(
             className: className,
@@ -186,7 +187,8 @@ class Castro: Node {
             arguments: [
                 SwiftGodot._argumentPropInfo(Podcast.self, name: "podcast")
             ],
-            function: Castro._mproxy_call_subscribe
+            function: Castro._mproxy_call_subscribe,
+            ptrcallFunction: Castro._mproxy_ptrcall_subscribe,
         )
         SwiftGodot._registerMethod(
             className: className,
@@ -196,7 +198,8 @@ class Castro: Node {
             arguments: [
                 SwiftGodot._argumentPropInfo(Podcast?.self, name: "podcast")
             ],
-            function: Castro._mproxy_call_perhapsSubscribe
+            function: Castro._mproxy_call_perhapsSubscribe,
+            ptrcallFunction: Castro._mproxy_ptrcall_perhapsSubscribe,
         )
         SwiftGodot._registerMethod(
             className: className,
@@ -206,7 +209,8 @@ class Castro: Node {
             arguments: [
                 SwiftGodot._argumentPropInfo(Variant.self, name: "from")
             ],
-            function: Castro._mproxy_call_removeSilences
+            function: Castro._mproxy_call_removeSilences,
+            ptrcallFunction: Castro._mproxy_ptrcall_removeSilences,
         )
         SwiftGodot._registerMethod(
             className: className,
@@ -216,7 +220,8 @@ class Castro: Node {
             arguments: [
                 SwiftGodot._argumentPropInfo(Podcast.self, name: "podcast")
             ],
-            function: Castro._mproxy_call_getLatestEpisode
+            function: Castro._mproxy_call_getLatestEpisode,
+            ptrcallFunction: Castro._mproxy_ptrcall_getLatestEpisode,
         )
         SwiftGodot._registerMethod(
             className: className,
@@ -227,7 +232,8 @@ class Castro: Node {
                 SwiftGodot._argumentPropInfo(Podcast.self, name: "podcast"),
                 SwiftGodot._argumentPropInfo(Podcast.self, name: "preceedingPodcast")
             ],
-            function: Castro._mproxy_call_queue
+            function: Castro._mproxy_call_queue,
+            ptrcallFunction: Castro._mproxy_ptrcall_queue,
         )
     } ()
 }

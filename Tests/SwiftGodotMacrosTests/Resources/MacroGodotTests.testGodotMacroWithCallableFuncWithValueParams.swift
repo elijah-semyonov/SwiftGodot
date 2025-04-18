@@ -108,7 +108,8 @@ class MathHelper: Node {
                 SwiftGodot._argumentPropInfo(Int.self, name: "a"),
                 SwiftGodot._argumentPropInfo(Int.self, name: "b")
             ],
-            function: MathHelper._mproxy_call_multiply
+            function: MathHelper._mproxy_call_multiply,
+            ptrcallFunction: MathHelper._mproxy_ptrcall_multiply,
         )
         SwiftGodot._registerMethod(
             className: className,
@@ -119,7 +120,8 @@ class MathHelper: Node {
                 SwiftGodot._argumentPropInfo(Float.self, name: "a"),
                 SwiftGodot._argumentPropInfo(Float.self, name: "b")
             ],
-            function: MathHelper._mproxy_call_divide
+            function: MathHelper._mproxy_call_divide,
+            ptrcallFunction: MathHelper._mproxy_ptrcall_divide,
         )
         SwiftGodot._registerMethod(
             className: className,
@@ -130,7 +132,8 @@ class MathHelper: Node {
                 SwiftGodot._argumentPropInfo(Bool.self, name: "a"),
                 SwiftGodot._argumentPropInfo(Bool.self, name: "b")
             ],
-            function: MathHelper._mproxy_call_areBothTrue
+            function: MathHelper._mproxy_call_areBothTrue,
+            ptrcallFunction: MathHelper._mproxy_ptrcall_areBothTrue,
         )
     } ()
 }

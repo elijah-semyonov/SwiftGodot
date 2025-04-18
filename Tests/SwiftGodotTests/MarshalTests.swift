@@ -20,6 +20,8 @@ class NodeUsingSwiftDate: Node {
 
 @Godot
 private class TestNode: Node {
+    var testValue = 0.0
+    
     @Export
     var closure: (Int, Int, Int) -> Int = { (a: Int, b: Int, c: Int) -> Int in
         return a + b + c
@@ -60,12 +62,28 @@ private class TestNode: Node {
     class func classFunc(something: String) -> Int {
         something.count
     }
+    
+    @Callable
+    func updateTestValue(_ value: Double) {
+        testValue = value
+    }
 }
 
 final class MarshalTests: GodotTestCase {
     
     override static var godotSubclasses: [Wrapped.Type] {
         return [TestNode.self, NodeUsingSwiftDate.self]
+    }
+    
+    func testPtrCallViaVirtualInvocation() {
+        let node = TestNode()
+        
+        let child = TestNode()
+        node.addChild(node: child)
+        
+        let childViaGodot = node.getChild(idx: 0)
+        _ = childViaGodot?.call(method: "updateTestValue", 60.0.toVariant())
+        XCTAssertEqual(60.0, child.testValue)
     }
     
     func testExportedClosure() {

@@ -48,7 +48,8 @@ class MultiplierNode: Node {
             arguments: [
                 SwiftGodot._argumentPropInfo([Int].self, name: "integers")
             ],
-            function: MultiplierNode._mproxy_call_multiply
+            function: MultiplierNode._mproxy_call_multiply,
+            ptrcallFunction: MultiplierNode._mproxy_ptrcall_multiply,
         )
     } ()
 }

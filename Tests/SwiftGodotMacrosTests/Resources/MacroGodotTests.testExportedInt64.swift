@@ -72,7 +72,8 @@ class Thing: SwiftGodot.Object {
             arguments: [
 
             ],
-            function: Thing._mproxy_call_get_some
+            function: Thing._mproxy_call_get_some,
+            ptrcallFunction: Thing._mproxy_ptrcall_get_some,
         )
     } ()
 }

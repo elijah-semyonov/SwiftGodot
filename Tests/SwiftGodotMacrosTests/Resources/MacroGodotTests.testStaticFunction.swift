@@ -26,7 +26,8 @@ class Hi: Node {
             arguments: [
 
             ],
-            function: Hi._mproxy_call_get_some
+            function: Hi._mproxy_call_get_some,
+            ptrcallFunction: Hi._mproxy_ptrcall_get_some,
         )
     } ()
 }

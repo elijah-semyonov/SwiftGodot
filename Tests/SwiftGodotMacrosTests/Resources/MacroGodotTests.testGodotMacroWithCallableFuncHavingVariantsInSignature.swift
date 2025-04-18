@@ -48,7 +48,8 @@ private class TestNode: Node {
             arguments: [
                 SwiftGodot._argumentPropInfo(Variant?.self, name: "variant")
             ],
-            function: TestNode._mproxy_call_foo
+            function: TestNode._mproxy_call_foo,
+            ptrcallFunction: TestNode._mproxy_ptrcall_foo,
         )
     } ()
 }

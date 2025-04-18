@@ -77,15 +77,63 @@ final class MacroIntegrationTests: GodotTestCase {
         var storage = Int64()
         
         _intoPtrCallReturnValue(Int(42), &storage)
+        let value = _fromPtrCallArgument(Int64.self, &storage)
         
         XCTAssertEqual(storage, 42)
+        XCTAssertEqual(storage, value)
     }
     
-    func testPtrCallBool() {
+    func testPtrCallDouble() {
         var storage = Double()
         
         _intoPtrCallReturnValue(Double.pi, &storage)
+        let value = _fromPtrCallArgument(Double.self, &storage)
         
         XCTAssertEqual(storage, .pi)
+        XCTAssertEqual(storage, value)
     }
+    
+    func testPtrCallString() {
+        let string = "Hello"
+        
+        var storage = GString.zero
+        
+        _intoPtrCallReturnValue(string, &storage)
+        let value = _fromPtrCallArgument(String.self, &storage)
+                
+        XCTAssertEqual(string, value)
+        
+        GString.destructor(&storage)
+    }
+    
+    func testPtrCallOptionalString() {
+        let string = "Hello" as String?
+        
+        var storage = Variant.zero
+        
+        _intoPtrCallReturnValue(string, &storage)
+        let value = _fromPtrCallArgument(String?.self, &storage)
+                
+        XCTAssertEqual(string, value)
+        
+        gi.variant_destroy(&storage)
+    }
+    
+    func testPtrCallObject() {
+        let object = Object()
+        
+        var storage: UnsafeRawPointer? = nil
+        
+        _intoPtrCallReturnValue(object, &storage)
+        let value = _fromPtrCallArgument(Object.self, &storage)
+        var optionalValue = _fromPtrCallArgument(Object?.self, &storage)
+                
+        XCTAssertEqual(object.handle, value.handle)
+        XCTAssertEqual(object.handle, optionalValue?.handle)
+        
+        _intoPtrCallReturnValue(nil as Object?, &storage)
+        optionalValue = _fromPtrCallArgument(Object?.self, &storage)
+        XCTAssertEqual(nil, optionalValue)
+    }
+
 }

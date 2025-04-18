@@ -108,7 +108,8 @@ class OtherThing: SwiftGodot.Node {
             arguments: [
                 SwiftGodot._argumentPropInfo(String?.self, name: "value")
             ],
-            function: OtherThing._mproxy_call_do_string
+            function: OtherThing._mproxy_call_do_string,
+            ptrcallFunction: OtherThing._mproxy_ptrcall_do_string,
         )
         SwiftGodot._registerMethod(
             className: className,
@@ -118,7 +119,8 @@ class OtherThing: SwiftGodot.Node {
             arguments: [
                 SwiftGodot._argumentPropInfo(Int?.self, name: "value")
             ],
-            function: OtherThing._mproxy_call_do_int
+            function: OtherThing._mproxy_call_do_int,
+            ptrcallFunction: OtherThing._mproxy_ptrcall_do_int,
         )
         SwiftGodot._registerMethod(
             className: className,
@@ -128,7 +130,8 @@ class OtherThing: SwiftGodot.Node {
             arguments: [
 
             ],
-            function: OtherThing._mproxy_call_get_thing
+            function: OtherThing._mproxy_call_get_thing,
+            ptrcallFunction: OtherThing._mproxy_ptrcall_get_thing,
         )
     } ()
 }

@@ -48,7 +48,8 @@ class SomeNode: Node {
             arguments: [
                 SwiftGodot._argumentPropInfo(ObjectCollection<Node>.self, name: "nodes")
             ],
-            function: SomeNode._mproxy_call_printNames
+            function: SomeNode._mproxy_call_printNames,
+            ptrcallFunction: SomeNode._mproxy_ptrcall_printNames,
         )
     } ()
 }

@@ -48,7 +48,8 @@ class SomeNode: Node {
             arguments: [
                 SwiftGodot._argumentPropInfo(VariantCollection<Int>.self, name: "integers")
             ],
-            function: SomeNode._mproxy_call_square
+            function: SomeNode._mproxy_call_square,
+            ptrcallFunction: SomeNode._mproxy_ptrcall_square,
         )
     } ()
 }

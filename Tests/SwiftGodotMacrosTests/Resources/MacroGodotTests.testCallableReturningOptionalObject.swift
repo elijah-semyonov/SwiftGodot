@@ -50,7 +50,8 @@ class OtherThing: SwiftGodot.Node {
             arguments: [
 
             ],
-            function: OtherThing._mproxy_call_get_thing
+            function: OtherThing._mproxy_call_get_thing,
+            ptrcallFunction: OtherThing._mproxy_ptrcall_get_thing,
         )
     } ()
 }

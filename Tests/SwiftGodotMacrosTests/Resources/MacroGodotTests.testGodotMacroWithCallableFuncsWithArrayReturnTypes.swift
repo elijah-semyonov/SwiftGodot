@@ -56,7 +56,8 @@ class CallableCollectionsNode: Node {
             arguments: [
 
             ],
-            function: CallableCollectionsNode._mproxy_call_get_ages
+            function: CallableCollectionsNode._mproxy_call_get_ages,
+            ptrcallFunction: CallableCollectionsNode._mproxy_ptrcall_get_ages,
         )
         SwiftGodot._registerMethod(
             className: className,
@@ -66,7 +67,8 @@ class CallableCollectionsNode: Node {
             arguments: [
 
             ],
-            function: CallableCollectionsNode._mproxy_call_get_markers
+            function: CallableCollectionsNode._mproxy_call_get_markers,
+            ptrcallFunction: CallableCollectionsNode._mproxy_ptrcall_get_markers,
         )
     } ()
 }

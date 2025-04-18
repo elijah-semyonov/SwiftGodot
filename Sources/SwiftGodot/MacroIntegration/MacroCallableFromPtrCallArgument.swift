@@ -53,6 +53,20 @@ public func _fromPtrCallArgument<T>(_ type: T?.Type = T?.self, _ ptr: UnsafeRawP
     FastVariant?._fromPtrCallArgument(ptr).to(T.self)
 }
 
+/// Internal API. Object.
+@inline(__always)
+@inlinable
+public func _fromPtrCallArgument<T>(_ type: T.Type = T.self, _ ptr: UnsafeRawPointer?) -> T where T: Object {
+    T._fromPtrCallArgument(ptr)
+}
+
+/// Internal API. Object?
+@inline(__always)
+@inlinable
+public func _fromPtrCallArgument<T>(_ type: T?.Type = T?.self, _ ptr: UnsafeRawPointer?) -> T? where T: Object {
+    T?._fromPtrCallArgument(ptr)
+}
+
 /// Internal API. Swift Array.
 @inline(__always)
 @inlinable

@@ -38,7 +38,8 @@ class SomeNode: Node {
             arguments: [
 
             ],
-            function: SomeNode._mproxy_call_getNodeCollection
+            function: SomeNode._mproxy_call_getNodeCollection,
+            ptrcallFunction: SomeNode._mproxy_ptrcall_getNodeCollection,
         )
     } ()
 }

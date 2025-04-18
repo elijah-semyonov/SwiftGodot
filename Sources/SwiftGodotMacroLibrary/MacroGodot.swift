@@ -124,7 +124,8 @@ class GodotMacroProcessor {
                 arguments: [
             \(arguments)
                 ], 
-                function: \(className)._mproxy_call_\(funcName)
+                function: \(className)._mproxy_call_\(funcName),
+                ptrcallFunction: \(className)._mproxy_ptrcall_\(funcName), 
             )
             """)
     }
