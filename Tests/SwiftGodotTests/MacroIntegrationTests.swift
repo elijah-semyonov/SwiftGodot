@@ -11,7 +11,7 @@ import SwiftGodotTestability
 
 final class MacroIntegrationTests: GodotTestCase {
     func testCorrectPropInfoInferrenceWithoutMacro() {
-        enum EnumExample: Int, CaseIterable {
+        enum EnumExample: Int, CaseIterable, GodotBuiltinConvertible {
             case zero = 0
             case one = 1
             case two = 2

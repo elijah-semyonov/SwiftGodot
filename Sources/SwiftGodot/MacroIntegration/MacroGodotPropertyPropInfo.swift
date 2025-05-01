@@ -163,19 +163,7 @@ public func _propInfo<Root, each Argument: VariantConvertible, Result: VariantCo
     Callable._propInfo(name: name, hint: userHint, hintStr: userHintStr, usage: userUsage)
 }
 
-@inline(__always)
-@usableFromInline
-func enumCasesHintStr<T>(_ type: T.Type = T.self) -> String
-where T: RawRepresentable, T: CaseIterable, T.RawValue: BinaryInteger {
-    type
-        .allCases
-        .map {
-            "\($0):\($0.rawValue)"
-        }
-        .joined(separator: ",")
-}
-
-/// Internal API.  CaseIterable enum with BinaryInteger RawValue.
+/// Internal API.  CaseIterable enum with BinaryInteger RawValue. Doesn't require explicit `GodotBuiltinConvertible`.
 @inline(__always)
 @inlinable
 public func _propInfo<Root, T>(
@@ -184,23 +172,8 @@ public func _propInfo<Root, T>(
     userHint: PropertyHint? = nil,
     userHintStr: String? = nil,
     userUsage: PropertyUsageFlags? = nil
-) -> PropInfo where T: RawRepresentable, T: CaseIterable, T.RawValue: BinaryInteger {
-    var userHint = userHint
-    var userHintStr = userHintStr
-    
-    if userHint == nil && userHintStr == nil {
-        // QoL add it automatically
-        userHint = .enum
-        userHintStr = enumCasesHintStr(T.self)
-    }
-    
-    return _propInfoDefault(
-        propertyType: .int,
-        name: name,
-        hint: userHint,
-        hintStr: userHintStr,
-        usage: userUsage
-    )
+) -> PropInfo where T: CaseIterable, T: RawRepresentable, T.RawValue: BinaryInteger, T.RawValue: _GodotBridgeableBuiltin {
+    T._propInfo(name: name, hint: userHint, hintStr: userHintStr, usage: userUsage)
 }
 
 @available(*, unavailable, message: "Type is not supported for @Export")

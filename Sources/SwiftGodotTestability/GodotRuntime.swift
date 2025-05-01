@@ -80,7 +80,7 @@ private extension GodotRuntime {
 
         // Godot crashes in -[GodotApplicationDelegate applicationDidFinishLaunching:] if __CFBundleIdentifier isn't set.
         // Terminal sets this automatically. Xcode does not.
-        // If it's set to something that isn't the main bundle ID, Godot hacks macOS into treating the process as an interactive Mac app, which is desirable.
+        // If it's set to something that isn't the mai n bundle ID, Godot hacks macOS into treating the process as an interactive Mac app, which is desirable.
         setenv("__CFBundleIdentifier", "SwiftGodotKit", 0)
 
         let args = ["SwiftGodotKit", "--headless", "--verbose"]

@@ -130,3 +130,116 @@ extension Dictionary: GodotBuiltinConvertible, _GodotBridgeableBuiltin, _GodotBr
         Dictionary(uniqueKeysWithValues: value)
     }
 }
+
+extension RawRepresentable {
+    var godotRawValueString: String {
+        "\(rawValue)"
+    }
+}
+
+extension CaseIterable {
+    static var godotEnumHintStr: String {
+        self
+            .allCases
+            .map {
+                guard let element = $0 as? RawRepresentable else {
+                    fatalError("Unreachable")
+                }
+                
+                return "\($0):\(element.godotRawValueString)"
+            }
+            .joined(separator: ",")
+    }
+}
+
+public extension RawRepresentable where RawValue: _GodotBridgeableBuiltin {
+    @inline(__always)
+    @inlinable
+    func toGodotBuiltin() -> RawValue {
+        rawValue
+    }
+    
+    @inline(__always)
+    @inlinable
+    static func fromGodotBuiltinOrThrow(_ value: RawValue) throws(VariantConversionError) -> Self {
+        guard let result = Self(rawValue: value) else {
+            throw .invalidRawValue(requestedType: Self.self, value: value)
+        }
+        
+        return result
+    }
+        
+    static func _propInfo(name: String, hint: PropertyHint?, hintStr: String?, usage: PropertyUsageFlags?) -> PropInfo {
+        var hint = hint
+        var hintStr = hintStr
+        
+        if let iterable = self as? CaseIterable.Type {
+            if hint == nil && hintStr == nil {
+                // QoL add it automatically
+                hint = .enum
+                hintStr = iterable.godotEnumHintStr
+            }
+        }
+        
+        return _propInfoDefault(
+            propertyType: RawValue._variantType,
+            name: name,
+            hint: hint,
+            hintStr: hintStr,
+            usage: usage
+        )
+    }
+    
+    /// Internal API. Default implementation.
+    /// Proxy the required low-level implementation via `GodotBuiltin`.
+    public static var _variantType: Variant.GType {
+        RawValue._variantType
+    }
+    
+    /// Internal API. Default implementation.
+    /// Proxy the required low-level implementation via `GodotBuiltin`.
+    public static var _builtinOrClassName: String {
+        RawValue._builtinOrClassName
+    }
+
+    /// Internal API. Default implementation.
+    /// Proxy the required low-level implementation via `GodotBuiltin`.
+    public static func _argumentPropInfo(name: String) -> PropInfo {
+        RawValue._argumentPropInfo(name: name)
+    }
+
+    /// Internal API. Default implementation.
+    /// Proxy the required low-level implementation via `GodotBuiltin`.
+    public static var _returnValuePropInfo: PropInfo {
+        RawValue._returnValuePropInfo
+    }
+
+    /// Internal API. Default implementation.
+    /// Proxy the required low-level implementation via `GodotBuiltin`.
+    public static func fromFastVariantOrThrow(_ variant: borrowing FastVariant) throws(VariantConversionError) -> Self {
+        try fromGodotBuiltinOrThrow(
+            RawValue.fromFastVariantOrThrow(variant)
+        )
+    }
+
+    /// Internal API. Default implementation.
+    /// Proxy the required low-level implementation via `GodotBuiltin`.
+    public func toFastVariant() -> FastVariant? {
+        toGodotBuiltin().toFastVariant()
+    }
+    
+    /// Internal API. Default implementation.
+    /// Proxy the required low-level implementation via `GodotBuiltin`.
+    public static func fromVariantOrThrow(_ variant: Variant) throws(VariantConversionError) -> Self {
+        try fromGodotBuiltinOrThrow(
+            RawValue.fromVariantOrThrow(variant)
+        )
+    }
+    
+    /// Internal API. Default implementation.
+    /// Proxy the required low-level implementation via `GodotBuiltin`.
+    public func toVariant() -> Variant? {
+        toGodotBuiltin().toVariant()
+    }
+    
+}
