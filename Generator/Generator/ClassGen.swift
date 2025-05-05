@@ -88,13 +88,21 @@ func generateVirtualProxy (_ p: Printer,
     } else {
         virtRet = nil
     }
-    p ("func _\(cdef.name)_proxy\(method.name) (instance: UnsafeMutableRawPointer?, args: UnsafePointer<UnsafeRawPointer?>?, retPtr: UnsafeMutableRawPointer?)") {
-        p ("guard let instance else { return }")
+    p ("func _\(cdef.name)_proxy\(method.name)(instance: RawSwiftBindingPointer?, args: UnsafePointer<UnsafeRawPointer?>?, retPtr: UnsafeMutableRawPointer?)") {
         if let arguments = method.arguments, arguments.count > 0 {
             p ("guard let args else { return }")
         }
-        p ("let reference = Unmanaged<WrappedReference>.fromOpaque(instance).takeUnretainedValue()")
-        p ("guard let swiftObject = reference.value as? \(cdef.name) else { return }")
+        
+        p("""
+        guard let binding = instance else {
+            fatalError("\(cdef.name).\(method.name) called on nil `RawSwiftBindingPointer`")
+        }
+        
+        let swiftObject = swiftObject(boundBy: binding)
+        guard let object = swiftObject as? \(cdef.name) else {
+            fatalError("\(cdef.name).\(method.name) called on binding bound to \\(type(of: swiftObject))")
+        }                
+        """)
         
         var argCall = ""
         var argPrep = ""
@@ -117,15 +125,15 @@ func generateVirtualProxy (_ p: Printer,
                 //
                 argPrep += "let resolved_\(i) = args [\(i)]!.load (as: GodotNativeObjectPointer?.self)\n"
                 if isMethodArgumentOptional(className: cdef.name, method: methodName, arg: arg.name) {
-                    argCall += "resolved_\(i) == nil ? nil : getOrInitSwiftObject (nativeHandle: resolved_\(i)!, ownsRef: false) as? \(arg.type)"
+                    argCall += "resolved_\(i) == nil ? nil : getOrInitSwiftObject(boundTo: resolved_\(i)!) as? \(arg.type)"
                 } else {
-                    argCall += "getOrInitSwiftObject (nativeHandle: resolved_\(i)!, ownsRef: false) as! \(arg.type)"
+                    argCall += "getOrInitSwiftObject(boundTo: resolved_\(i)!, ownsRef: false) as! \(arg.type)"
                 }
             } else if let storage = builtinClassStorage [arg.type] {
-                argCall += "\(mapTypeName (arg.type)) (content: args [\(i)]!.assumingMemoryBound (to: \(storage).self).pointee)"
+                argCall += "\(mapTypeName(arg.type))(content: args [\(i)]!.assumingMemoryBound (to: \(storage).self).pointee)"
             } else {
                 let gt = getGodotType(arg)
-                argCall += "args [\(i)]!.assumingMemoryBound (to: \(gt).self).pointee"
+                argCall += "args [\(i)]!.assumingMemoryBound(to: \(gt).self).pointee"
             }
             i += 1
         }
@@ -133,7 +141,7 @@ func generateVirtualProxy (_ p: Printer,
         if argPrep != "" {
             p (argPrep)
         }
-        var call = "swiftObject.\(methodName) (\(argCall))"
+        var call = "object.\(methodName)(\(argCall))"
         if method.returnValue?.type == "String" {
             call = "GString (\(call))"
         }
@@ -589,7 +597,7 @@ func processClass (cdef: JGodotExtensionAPIClass, outputDir: String?) async {
             p ("/// The shared instance of this class")
             p.staticProperty(visibility: "public", isStored: false, name: "shared", type: cdef.name) {
                 p ("return withUnsafePointer(to: &\(cdef.name).godotClassName.content)", arg: " ptr in") {
-                    p ("getOrInitSwiftObject(nativeHandle: gi.global_get_singleton(ptr)!, ownsRef: false)!")
+                    p ("getOrInitSwiftObject(boundTo: gi.global_get_singleton(ptr)!)!")
                 }
             }
         }

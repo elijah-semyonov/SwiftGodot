@@ -283,7 +283,7 @@ public struct PropInfo: CustomDebugStringConvertible {
 }
 
 func bind_call (_ udata: UnsafeMutableRawPointer?,
-                classInstance: UnsafeMutableRawPointer?,
+                classInstance: RawSwiftBindingPointer?,
                 variantArgs: UnsafePointer<UnsafeRawPointer?>?,
                 argc: Int64,
                 returnValue: UnsafeMutableRawPointer?,
@@ -292,10 +292,8 @@ func bind_call (_ udata: UnsafeMutableRawPointer?,
     guard let classInstance else { return }
         
     let finfo = udata.assumingMemoryBound(to: ClassInfo.FunctionInfo.self).pointee
-    let ref = Unmanaged<WrappedReference>.fromOpaque(classInstance).takeUnretainedValue()
-    guard let object = ref.value as? Object else { return }
+    guard let object = swiftObject(boundBy: classInstance) as? Object else { return }
 
-    
     let ret = withArguments(pargs: variantArgs, argc: argc) { arguments in
         let bound = finfo.function(object)
         return bound(arguments)

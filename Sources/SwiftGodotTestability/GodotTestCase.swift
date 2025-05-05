@@ -24,8 +24,7 @@ open class GodotTestCase: EmbeddedTestCase<GodotTestHost> {
     override open class func tearDown() {
         if GodotRuntime.isRunning {
             // unregister any types that were registered for the tests
-            for subclass in godotSubclasses.reversed() {
-                releasePendingObjects()
+            for subclass in godotSubclasses.reversed() {                
                 unregister(type: subclass)
             }
         }

@@ -296,7 +296,7 @@ public struct FastVariant: ~Copyable {
         guard let objectHandle else {
             return nil
         }
-        let ret: T? = getOrInitSwiftObject(nativeHandle: objectHandle, ownsRef: false)
+        let ret: T? = getOrInitSwiftObject(boundTo: objectHandle)
         return ret
     }
     
