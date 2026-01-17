@@ -86,6 +86,7 @@ class TestClass: Node {
 
     override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
         SwiftGodotRuntime.ClassRegistrationDescriptor(
+                type: Self.self,
                 className: StringName("TestClass"),
                 members: [
                 .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(

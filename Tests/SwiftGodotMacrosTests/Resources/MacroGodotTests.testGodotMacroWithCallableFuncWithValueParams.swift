@@ -107,6 +107,7 @@ class MathHelper: Node {
 
     override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
         SwiftGodotRuntime.ClassRegistrationDescriptor(
+                type: Self.self,
                 className: StringName("MathHelper"),
                 members: [
                 .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(

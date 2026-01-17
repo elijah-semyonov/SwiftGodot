@@ -412,6 +412,7 @@ class GodotMacroProcessor {
 
         return """
 SwiftGodotRuntime.ClassRegistrationDescriptor(
+            type: Self.self,
             className: StringName("\(className)"),
             members: \(membersStr)
         )

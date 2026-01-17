@@ -410,42 +410,6 @@ var duplicateClassNameDetected: (_ name: StringName, _ type: Object.Type) -> Voi
     )
 }
 
-func register<T: Object>(type name: StringName, parent: StringName, type: T.Type) {
-    var nameContent = name.content
-
-    // The classdb_get_class_tag function is documented to return “a pointer uniquely identifying the given built-in class”. As of Godot 4.2.2, it also returns non-nil for types registered by extensions. If Godot is changed in the future to return nil for extension types, this will simply stop detecting duplicate class names. It won't break valid code.
-
-    let existingClassTag = gi.classdb_get_class_tag(&nameContent)
-    if existingClassTag != nil {
-        duplicateClassNameDetected(name, type)
-    }
-
-    func getVirtual(_ userData: UnsafeMutableRawPointer?, _ name: GDExtensionConstStringNamePtr?) ->  GDExtensionClassCallVirtual? {
-        let typeAny = Unmanaged<AnyObject>.fromOpaque(userData!).takeUnretainedValue()
-        guard let type  = typeAny as? Object.Type else {
-            pd ("The wrapped value did not contain a type: \(typeAny)")
-            return nil
-        }
-        return type.getVirtualDispatcher(name: StringName (fromPtr: name))
-    }
-    
-    var info = GDExtensionClassCreationInfo2 ()
-    info.create_instance_func = createFunc(_:)
-    info.free_instance_func = freeFunc(_:_:)
-    info.get_virtual_func = getVirtual
-    info.notification_func = notificationFunc
-    info.recreate_instance_func = recreateFunc
-    info.validate_property_func = validatePropertyFunc
-    info.is_exposed = 1
-    
-    userTypes[name.description] = T.self
-    
-    let retained = Unmanaged<AnyObject>.passRetained(type as AnyObject)
-    info.class_userdata = retained.toOpaque()
-    
-    gi.classdb_register_extension_class(extensionInterface.getLibrary(), &nameContent, &parent.content, &info)
-}
-
 @_spi(SwiftGodotRuntimePrivate) public final class WrappedReference {
     public init(_ val: Wrapped, strong: Bool = true) {
         self.ref = val
@@ -507,14 +471,9 @@ func register<T: Object>(type name: StringName, parent: StringName, type: T.Type
 /// types are registered, then all members. This ensures cross-references between classes
 /// work correctly.
 public func register<T: Object>(type: T.Type) {
-    guard let superType = Swift._getSuperclass (type) else {
-        print ("You can not register the root class")
-        return
-    }
-    let typeStr = String (describing: type)
-    let superStr = String(describing: superType)
-    register (type: StringName (typeStr), parent: StringName (superStr), type: type)
-    type.classRegistrationDescriptor.register()
+    let descriptor = type.classRegistrationDescriptor
+    descriptor.registerClass()
+    descriptor.registerMembers()
 }
 
 /// Registers multiple user-types with Godot using two-phase registration.
@@ -527,22 +486,21 @@ public func register<T: Object>(type: T.Type) {
 /// Use this instead of multiple `register(type:)` calls when you have classes
 /// that reference each other through properties.
 ///
+/// - Important: The types array must be topologically sorted: parent classes must appear
+///   before their children. If the order is incorrect, registration may fail or produce
+///   undefined behavior. For example, if `ChildClass` extends `ParentClass`, then
+///   `ParentClass` must appear before `ChildClass` in the array.
+///
 /// - Parameter types: The types to register, in dependency order (parents before children)
 public func registerTypes(_ types: [Object.Type]) {
     // Phase 1: Register all class types
     for type in types {
-        guard let superType = Swift._getSuperclass(type) else {
-            print("You can not register the root class")
-            continue
-        }
-        let typeStr = String(describing: type)
-        let superStr = String(describing: superType)
-        register(type: StringName(typeStr), parent: StringName(superStr), type: type)
+        type.classRegistrationDescriptor.registerClass()
     }
 
     // Phase 2: Register all members
     for type in types {
-        type.classRegistrationDescriptor.register()
+        type.classRegistrationDescriptor.registerMembers()
     }
 }
 

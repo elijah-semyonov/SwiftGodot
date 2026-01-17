@@ -3,6 +3,7 @@ final class Hi: Node {
 
     override public class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
         SwiftGodotRuntime.ClassRegistrationDescriptor(
+                type: Self.self,
                 className: StringName("Hi"),
                 members: []
             )

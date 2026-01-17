@@ -47,6 +47,7 @@ class ArrayTest: Node {
 
     override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
         SwiftGodotRuntime.ClassRegistrationDescriptor(
+                type: Self.self,
                 className: StringName("ArrayTest"),
                 members: [
                 .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(

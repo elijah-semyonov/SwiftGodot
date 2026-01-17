@@ -23,7 +23,11 @@ public class SignalProxy: Object {
 
     /// SignalProxy uses manual class registration via `initClass()`, so this returns an empty descriptor.
     override public class var classRegistrationDescriptor: ClassRegistrationDescriptor {
-        ClassRegistrationDescriptor(className: StringName("SignalProxy"), members: [])
+        ClassRegistrationDescriptor(
+            type: Self.self,
+            className: StringName("SignalProxy"),
+            members: []
+        )
     }
 
     public static func initClass() {

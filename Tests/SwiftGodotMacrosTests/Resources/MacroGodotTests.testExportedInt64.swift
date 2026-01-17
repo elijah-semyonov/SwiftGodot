@@ -46,6 +46,7 @@ class Thing: SwiftGodot.Object {
 
     override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
         SwiftGodotRuntime.ClassRegistrationDescriptor(
+                type: Self.self,
                 className: StringName("Thing"),
                 members: [
                 .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(

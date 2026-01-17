@@ -13,6 +13,7 @@ class Demo: Node3D {
 
     override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
         SwiftGodotRuntime.ClassRegistrationDescriptor(
+                type: Self.self,
                 className: StringName("Demo"),
                 members: [
                 .signal(SwiftGodotRuntime.ClassRegistrationDescriptor.Signal(

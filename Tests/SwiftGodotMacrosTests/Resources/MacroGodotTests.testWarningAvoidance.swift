@@ -2,6 +2,7 @@ final class MyData: Resource {
 
     override public class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
         SwiftGodotRuntime.ClassRegistrationDescriptor(
+                type: Self.self,
                 className: StringName("MyData"),
                 members: []
             )
@@ -33,6 +34,7 @@ final class MyClass: Node {
 
     override public class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
         SwiftGodotRuntime.ClassRegistrationDescriptor(
+                type: Self.self,
                 className: StringName("MyClass"),
                 members: [
                 .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
