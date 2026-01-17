@@ -49,7 +49,7 @@ earliest point where it is safe to register singletons:
 ```swift
 func setupScene(level: GDExtension.InitializationLevel) {
     if level == .scene {
-        register(type: MyGameManager.self)
+        registerTypes([MyGameManager.self])
 
         // Register the singleton with the Engine
         Engine.registerSingleton(
@@ -152,7 +152,7 @@ class MyNodeSingleton: Node {
 
 func setupScene(level: GDExtension.InitializationLevel) {
     if level == .scene {
-        register(type: MyNodeSingleton.self)
+        registerTypes([MyNodeSingleton.self])
 
         let singleton = MyNodeSingleton()
 
@@ -242,7 +242,7 @@ class GameState: Node {
 // Registration
 func setupScene(level: GDExtension.InitializationLevel) {
     if level == .scene {
-        register(type: GameState.self)
+        registerTypes([GameState.self])
 
         let gameState = GameState()
         Engine.registerSingleton(name: GameState.singletonName, instance: gameState)

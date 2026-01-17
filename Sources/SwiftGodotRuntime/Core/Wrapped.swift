@@ -444,7 +444,6 @@ func register<T: Object>(type name: StringName, parent: StringName, type: T.Type
     info.class_userdata = retained.toOpaque()
     
     gi.classdb_register_extension_class(extensionInterface.getLibrary(), &nameContent, &parent.content, &info)
-    type.classRegistrationDescriptor.register()
 }
 
 @_spi(SwiftGodotRuntimePrivate) public final class WrappedReference {
@@ -495,9 +494,18 @@ func register<T: Object>(type name: StringName, parent: StringName, type: T.Type
     private var strong: Bool = false
 }
 
-/// Registers the user-type specified with the Godot system, and allows it to
-/// receive any of the calls from Godot virtual methods (those that are prefixed
-/// with an underscore)
+/// Registers a single user-type with Godot.
+///
+/// - Note: Prefer using ``registerTypes(_:)`` instead when registering multiple types.
+///
+/// This function registers the class type and its members (properties, methods, signals)
+/// immediately. This can cause problems when a property's type references another custom
+/// class that hasn't been registered yet - Godot won't recognize the type and the property
+/// may not work correctly.
+///
+/// Use ``registerTypes(_:)`` instead, which uses two-phase registration: first all class
+/// types are registered, then all members. This ensures cross-references between classes
+/// work correctly.
 public func register<T: Object>(type: T.Type) {
     guard let superType = Swift._getSuperclass (type) else {
         print ("You can not register the root class")
@@ -506,6 +514,36 @@ public func register<T: Object>(type: T.Type) {
     let typeStr = String (describing: type)
     let superStr = String(describing: superType)
     register (type: StringName (typeStr), parent: StringName (superStr), type: type)
+    type.classRegistrationDescriptor.register()
+}
+
+/// Registers multiple user-types with Godot using two-phase registration.
+///
+/// This function first registers all class types with Godot's ClassDB, then
+/// registers all their members (properties, methods, signals). This ensures
+/// that when a property's type references another class in the batch, that
+/// class is already registered.
+///
+/// Use this instead of multiple `register(type:)` calls when you have classes
+/// that reference each other through properties.
+///
+/// - Parameter types: The types to register, in dependency order (parents before children)
+public func registerTypes(_ types: [Object.Type]) {
+    // Phase 1: Register all class types
+    for type in types {
+        guard let superType = Swift._getSuperclass(type) else {
+            print("You can not register the root class")
+            continue
+        }
+        let typeStr = String(describing: type)
+        let superStr = String(describing: superType)
+        register(type: StringName(typeStr), parent: StringName(superStr), type: type)
+    }
+
+    // Phase 2: Register all members
+    for type in types {
+        type.classRegistrationDescriptor.register()
+    }
 }
 
 /// Register the enumeration, the enumeration must be nested into a type

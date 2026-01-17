@@ -44,23 +44,32 @@ will scan your type for various other macros to integrate with Godot.   These
 attributes will not work if you attempt to apply those in a Swift
 extension-method, as the @Godot macro has no visibility into those.
 
-## Register Your Type
+## Register Your Types
 
-Now we need to tell Godot about the existence of your type, to do this you need
-to call the `register(type:)` method.   I like to register all my types at
-startup, but you can do this at any time after the module has been initialized.
+Now we need to tell Godot about the existence of your types. Use the
+``registerTypes(_:)`` function to register all your custom types at once.
 
-Your module gets initialized on a callback from Godot at different stages, this
-is how I register my types:
+**Note:** Prefer using `registerTypes(_:)` instead of individual `register(type:)`
+calls when registering multiple types. The `registerTypes` function uses two-phase
+registration: first it registers all class types with Godot, then it registers their
+members (properties, methods, signals). This ensures that when one class has a
+property of another custom class type, that class is already known to Godot.
+
+Your module gets initialized on a callback from Godot at different stages. Here's
+how to register your types:
 
 ```swift
 /// This method will be invoked at different stages of the execution,
-/// in our example, we register the type when the level being used is
+/// in our example, we register the types when the level being used is
 /// `.scene`.
 
 func setupScene (level: ExtensionInitializationLevel) {
     if level == .scene {
-        register(type: SwiftSprite.self)
+        registerTypes([
+            SwiftSprite.self,
+            MyOtherClass.self,
+            // Add all your custom types here
+        ])
     }
 }
 

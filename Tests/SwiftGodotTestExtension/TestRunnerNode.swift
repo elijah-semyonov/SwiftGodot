@@ -132,10 +132,8 @@ public class TestRunnerNode: Node {
         let suiteName = suiteType.name
         GD.printRich("[color=blue][b]\(suiteName)[/b][/color]")
 
-        // Register Godot subclasses needed by this suite
-        for subclass in suiteType.registeredTypes {
-            register(type: subclass)
-        }
+        // Register Godot subclasses needed by this suite using two-phase registration
+        registerTypes(suiteType.registeredTypes)
 
         // Run test methods (filtered if specified)
         let allTests = suite.allTests

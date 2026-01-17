@@ -113,11 +113,10 @@ class SwiftSprite: Sprite2D {
     }
 }
 
-/// Setup 
+/// Setup
 func setupScene (level: ExtensionInitializationLevel) {
     if level == .scene {
-        register(type: Rigid.self)
-        register(type: SwiftSprite.self)
+        registerTypes([Rigid.self, SwiftSprite.self])
     }
 }
 
