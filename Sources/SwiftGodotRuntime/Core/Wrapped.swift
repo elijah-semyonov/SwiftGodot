@@ -444,17 +444,7 @@ func register<T: Object>(type name: StringName, parent: StringName, type: T.Type
     info.class_userdata = retained.toOpaque()
     
     gi.classdb_register_extension_class(extensionInterface.getLibrary(), &nameContent, &parent.content, &info)
-    if var extensionInterface {
-        let performRegistration = {
-            type.classRegistrationDescriptor.register()
-        }
-
-        if extensionInterface.classDBReady {
-            performRegistration()
-        } else {
-            extensionInterface.pendingInitializers.append(performRegistration)
-        }
-    }
+    type.classRegistrationDescriptor.register()
 }
 
 @_spi(SwiftGodotRuntimePrivate) public final class WrappedReference {

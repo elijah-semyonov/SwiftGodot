@@ -30,10 +30,6 @@ public protocol ExtensionInterface {
     func sameDomain(handle: UnsafeRawPointer) -> Bool
 
     func getCurrenDomain() -> UInt8
-
-    var classDBReady: Bool { get set }
-
-    var pendingInitializers: [()->()] { get set }
 }
 
 public extension ExtensionInterface {
@@ -87,10 +83,6 @@ class LibGodotExtensionInterface: ExtensionInterface {
     func getCurrenDomain() -> UInt8 {
         0
     }
-
-    /// Tracks the active initialization level
-    var classDBReady = false
-    var pendingInitializers: [()->()] = []
 }
 
 /// The pointer to the Godot Extension Interface
@@ -123,11 +115,6 @@ func extension_initialize(userData: UnsafeMutableRawPointer?, l: GDExtensionInit
     //print ("SWIFT: extension_initialize")
     guard let level = ExtensionInitializationLevel(rawValue: Int64(exactly: l.rawValue)!) else { return }
     if level == .scene {
-        extensionInterface.classDBReady = true
-        for initializer in extensionInterface.pendingInitializers {
-            initializer()
-        }
-        extensionInterface.pendingInitializers.removeAll()
         extensionInterface.initClasses()
     }
     guard let userData else { return }
