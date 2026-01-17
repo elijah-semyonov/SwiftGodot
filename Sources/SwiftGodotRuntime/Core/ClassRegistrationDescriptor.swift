@@ -1,5 +1,5 @@
 //
-//  GodotClassRegistrationDescriptor.swift
+//  ClassRegistrationDescriptor.swift
 //  SwiftGodot
 //
 //  Created by SwiftGodot on 2025.
