@@ -22,30 +22,18 @@ class SomeNode: Node {
         return SwiftGodotRuntime._invokeGetter(object.greetings)
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("SomeNode"),
+                members: [
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \SomeNode.greetings, name: "greetings", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_greetings",
+        setterName: "set_greetings",
+        getterFunction: SomeNode._mproxy_get_greetings,
+        setterFunction: SomeNode._mproxy_set_greetings
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("SomeNode")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \SomeNode.greetings,
-                name: "greetings",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_greetings",
-            setterName: "set_greetings",
-            getterFunction: SomeNode._mproxy_get_greetings,
-            setterFunction: SomeNode._mproxy_set_greetings
-        )
-    }()
 }

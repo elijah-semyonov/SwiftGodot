@@ -88,75 +88,42 @@ class Car: Node {
         return SwiftGodotRuntime._invokeGetter(object.models)
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("Car"),
+                members: [
+                .propertyGroup(SwiftGodotRuntime.ClassRegistrationDescriptor.PropertyGroup(name: "VIN", prefix: "")),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Car.vins, name: "vins", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_vins",
+        setterName: "set_vins",
+        getterFunction: Car._mproxy_get_vins,
+        setterFunction: Car._mproxy_set_vins
+                    )),
+                .propertyGroup(SwiftGodotRuntime.ClassRegistrationDescriptor.PropertyGroup(name: "YMM", prefix: "")),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Car.years, name: "years", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_years",
+        setterName: "set_years",
+        getterFunction: Car._mproxy_get_years,
+        setterFunction: Car._mproxy_set_years
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Car.makes, name: "makes", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_makes",
+        setterName: "set_makes",
+        getterFunction: Car._mproxy_get_makes,
+        setterFunction: Car._mproxy_set_makes
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Car.models, name: "models", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_models",
+        setterName: "set_models",
+        getterFunction: Car._mproxy_get_models,
+        setterFunction: Car._mproxy_set_models
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("Car")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._addPropertyGroup(className: className, name: "VIN", prefix: "")
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Car.vins,
-                name: "vins",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_vins",
-            setterName: "set_vins",
-            getterFunction: Car._mproxy_get_vins,
-            setterFunction: Car._mproxy_set_vins
-        )
-        SwiftGodotRuntime._addPropertyGroup(className: className, name: "YMM", prefix: "")
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Car.years,
-                name: "years",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_years",
-            setterName: "set_years",
-            getterFunction: Car._mproxy_get_years,
-            setterFunction: Car._mproxy_set_years
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Car.makes,
-                name: "makes",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_makes",
-            setterName: "set_makes",
-            getterFunction: Car._mproxy_get_makes,
-            setterFunction: Car._mproxy_set_makes
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Car.models,
-                name: "models",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_models",
-            setterName: "set_models",
-            getterFunction: Car._mproxy_get_models,
-            setterFunction: Car._mproxy_set_models
-        )
-    }()
     
 }

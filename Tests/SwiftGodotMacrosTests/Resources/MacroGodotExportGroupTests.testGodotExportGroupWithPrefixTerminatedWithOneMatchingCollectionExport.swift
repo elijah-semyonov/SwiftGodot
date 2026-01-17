@@ -44,45 +44,26 @@ public class Issue353: Node {
         return SwiftGodotRuntime._invokeGetter(object.non_prefixed_bool)
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("Issue353"),
+                members: [
+                .propertyGroup(SwiftGodotRuntime.ClassRegistrationDescriptor.PropertyGroup(name: "Group With a Prefix", prefix: "prefix1")),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Issue353.prefix1_prefixed_bool, name: "prefix1_prefixed_bool", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get__prefixed_bool",
+        setterName: "set__prefixed_bool",
+        getterFunction: Issue353._mproxy_get_prefix1_prefixed_bool,
+        setterFunction: Issue353._mproxy_set_prefix1_prefixed_bool
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Issue353.non_prefixed_bool, name: "non_prefixed_bool", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_non_prefixed_bool",
+        setterName: "set_non_prefixed_bool",
+        getterFunction: Issue353._mproxy_get_non_prefixed_bool,
+        setterFunction: Issue353._mproxy_set_non_prefixed_bool
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("Issue353")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._addPropertyGroup(className: className, name: "Group With a Prefix", prefix: "prefix1")
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Issue353.prefix1_prefixed_bool,
-                name: "prefix1_prefixed_bool",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get__prefixed_bool",
-            setterName: "set__prefixed_bool",
-            getterFunction: Issue353._mproxy_get_prefix1_prefixed_bool,
-            setterFunction: Issue353._mproxy_set_prefix1_prefixed_bool
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Issue353.non_prefixed_bool,
-                name: "non_prefixed_bool",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_non_prefixed_bool",
-            setterName: "set_non_prefixed_bool",
-            getterFunction: Issue353._mproxy_get_non_prefixed_bool,
-            setterFunction: Issue353._mproxy_set_non_prefixed_bool
-        )
-    }()
 }

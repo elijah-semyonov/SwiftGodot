@@ -46,52 +46,43 @@ class CallableCollectionsNode: Node {
 
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("CallableCollectionsNode"),
+                members: [
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "get_ages",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo([Int].self),
+        arguments: [
+
+        ],
+        function: CallableCollectionsNode._mproxy_get_ages,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            CallableCollectionsNode._pproxy_get_ages(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "get_markers",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo([Marker3D].self),
+        arguments: [
+
+        ],
+        function: CallableCollectionsNode._mproxy_get_markers,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            CallableCollectionsNode._pproxy_get_markers(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("CallableCollectionsNode")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "get_ages",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo([Int].self),
-            arguments: [
-
-            ],
-            function: CallableCollectionsNode._mproxy_get_ages,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                CallableCollectionsNode._pproxy_get_ages (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "get_markers",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo([Marker3D].self),
-            arguments: [
-
-            ],
-            function: CallableCollectionsNode._mproxy_get_markers,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                CallableCollectionsNode._pproxy_get_markers (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-    }()
 }

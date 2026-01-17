@@ -188,125 +188,108 @@ class Castro: Node {
         }
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("Castro"),
+                members: [
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "deleteEpisode",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+
+        ],
+        function: Castro._mproxy_deleteEpisode,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            Castro._pproxy_deleteEpisode(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "subscribe",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo(Podcast.self, name: "podcast")
+        ],
+        function: Castro._mproxy_subscribe,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            Castro._pproxy_subscribe(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "perhapsSubscribe",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo(Podcast?.self, name: "podcast")
+        ],
+        function: Castro._mproxy_perhapsSubscribe,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            Castro._pproxy_perhapsSubscribe(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "removeSilences",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo(Variant.self, name: "from")
+        ],
+        function: Castro._mproxy_removeSilences,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            Castro._pproxy_removeSilences(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "getLatestEpisode",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Episode.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo(Podcast.self, name: "podcast")
+        ],
+        function: Castro._mproxy_getLatestEpisode,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            Castro._pproxy_getLatestEpisode(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "queue",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo(Podcast.self, name: "podcast"),
+                        SwiftGodotRuntime._argumentPropInfo(Podcast.self, name: "preceedingPodcast")
+        ],
+        function: Castro._mproxy_queue,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            Castro._pproxy_queue(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("Castro")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "deleteEpisode",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-
-            ],
-            function: Castro._mproxy_deleteEpisode,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                Castro._pproxy_deleteEpisode (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "subscribe",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo(Podcast.self, name: "podcast")
-            ],
-            function: Castro._mproxy_subscribe,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                Castro._pproxy_subscribe (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "perhapsSubscribe",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo(Podcast?.self, name: "podcast")
-            ],
-            function: Castro._mproxy_perhapsSubscribe,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                Castro._pproxy_perhapsSubscribe (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "removeSilences",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo(Variant.self, name: "from")
-            ],
-            function: Castro._mproxy_removeSilences,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                Castro._pproxy_removeSilences (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "getLatestEpisode",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Episode.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo(Podcast.self, name: "podcast")
-            ],
-            function: Castro._mproxy_getLatestEpisode,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                Castro._pproxy_getLatestEpisode (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "queue",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo(Podcast.self, name: "podcast"),
-                SwiftGodotRuntime._argumentPropInfo(Podcast.self, name: "preceedingPodcast")
-            ],
-            function: Castro._mproxy_queue,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                Castro._pproxy_queue (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-    }()
 }

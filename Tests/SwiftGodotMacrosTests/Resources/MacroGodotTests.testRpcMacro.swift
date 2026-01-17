@@ -83,72 +83,61 @@ class MultiplayerNode: Node {
 
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("MultiplayerNode"),
+                members: [
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "syncPosition",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo(Vector3.self, name: "position")
+        ],
+        function: MultiplayerNode._mproxy_syncPosition,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            MultiplayerNode._pproxy_syncPosition(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "defaultRpc",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+
+        ],
+        function: MultiplayerNode._mproxy_defaultRpc,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            MultiplayerNode._pproxy_defaultRpc(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "fullConfig",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+
+        ],
+        function: MultiplayerNode._mproxy_fullConfig,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            MultiplayerNode._pproxy_fullConfig(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("MultiplayerNode")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "syncPosition",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo(Vector3.self, name: "position")
-            ],
-            function: MultiplayerNode._mproxy_syncPosition,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                MultiplayerNode._pproxy_syncPosition (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "defaultRpc",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-
-            ],
-            function: MultiplayerNode._mproxy_defaultRpc,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                MultiplayerNode._pproxy_defaultRpc (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "fullConfig",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-
-            ],
-            function: MultiplayerNode._mproxy_fullConfig,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                MultiplayerNode._pproxy_fullConfig (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-    }()
 
     /// Called automatically before `_ready()`. Configures RPC for methods marked with `@Rpc`.
     override open func _before_ready() {

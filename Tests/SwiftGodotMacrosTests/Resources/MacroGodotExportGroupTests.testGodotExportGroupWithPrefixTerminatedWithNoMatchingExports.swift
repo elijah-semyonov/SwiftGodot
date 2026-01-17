@@ -22,31 +22,19 @@ class Garage: Node {
         return SwiftGodotRuntime._invokeGetter(object.bar)
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("Garage"),
+                members: [
+                .propertyGroup(SwiftGodotRuntime.ClassRegistrationDescriptor.PropertyGroup(name: "Example", prefix: "example")),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Garage.bar, name: "bar", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_bar",
+        setterName: "set_bar",
+        getterFunction: Garage._mproxy_get_bar,
+        setterFunction: Garage._mproxy_set_bar
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("Garage")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._addPropertyGroup(className: className, name: "Example", prefix: "example")
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Garage.bar,
-                name: "bar",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_bar",
-            setterName: "set_bar",
-            getterFunction: Garage._mproxy_get_bar,
-            setterFunction: Garage._mproxy_set_bar
-        )
-    }()
 }

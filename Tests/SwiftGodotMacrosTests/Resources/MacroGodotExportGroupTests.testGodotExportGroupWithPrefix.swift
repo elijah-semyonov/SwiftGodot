@@ -44,45 +44,26 @@ class Car: Node {
         return SwiftGodotRuntime._invokeGetter(object.vehicle_model)
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("Car"),
+                members: [
+                .propertyGroup(SwiftGodotRuntime.ClassRegistrationDescriptor.PropertyGroup(name: "Vehicle", prefix: "vehicle_")),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Car.vehicle_make, name: "vehicle_make", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_make",
+        setterName: "set_make",
+        getterFunction: Car._mproxy_get_vehicle_make,
+        setterFunction: Car._mproxy_set_vehicle_make
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Car.vehicle_model, name: "vehicle_model", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_model",
+        setterName: "set_model",
+        getterFunction: Car._mproxy_get_vehicle_model,
+        setterFunction: Car._mproxy_set_vehicle_model
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("Car")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._addPropertyGroup(className: className, name: "Vehicle", prefix: "vehicle_")
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Car.vehicle_make,
-                name: "vehicle_make",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_make",
-            setterName: "set_make",
-            getterFunction: Car._mproxy_get_vehicle_make,
-            setterFunction: Car._mproxy_set_vehicle_make
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Car.vehicle_model,
-                name: "vehicle_model",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_model",
-            setterName: "set_model",
-            getterFunction: Car._mproxy_get_vehicle_model,
-            setterFunction: Car._mproxy_set_vehicle_model
-        )
-    }()
 }

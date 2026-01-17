@@ -24,34 +24,27 @@ class SomeNode: Node {
 
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("SomeNode"),
+                members: [
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "getIntegerCollection",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(TypedArray<Int>.self),
+        arguments: [
+
+        ],
+        function: SomeNode._mproxy_getIntegerCollection,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            SomeNode._pproxy_getIntegerCollection(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("SomeNode")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "getIntegerCollection",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(TypedArray<Int>.self),
-            arguments: [
-
-            ],
-            function: SomeNode._mproxy_getIntegerCollection,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                SomeNode._pproxy_getIntegerCollection (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-    }()
 }

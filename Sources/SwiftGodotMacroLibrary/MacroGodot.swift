@@ -29,7 +29,8 @@ struct RpcConfiguration {
 class GodotMacroProcessor {
     var existingMembers: [String: DeclSyntax] = [:]
 
-    let classInitializerPrinter = CodePrinter()
+    /// Collects member descriptor strings in declaration order
+    var memberDescriptors: [String] = []
     let classDecl: ClassDeclSyntax
     let className: String
 
@@ -40,47 +41,46 @@ class GodotMacroProcessor {
         self.classDecl = classDecl
         className = classDecl.name.text
     }
-    
+
     func checkNameCollision(_ name: String, for decl: DeclSyntax) throws {
         if existingMembers.updateValue(decl, forKey: name) != nil {
             throw GodotMacroError.nameCollision(name)
         }
     }
-    
+
     func classInitSignals(_ declSyntax: MacroExpansionDeclSyntax) throws {
         guard declSyntax.macroName.tokenKind == .identifier("signal") else {
             return
         }
-        
+
         guard let firstArg = declSyntax.arguments.first else {
             return
         }
-        
+
         guard let signalName = firstArg.expression.signalName() else {
             return
         }
-        
-        classInitializerPrinter("""
-        SwiftGodotRuntime._registerSignal(
-            \(className).\(signalName.swiftName).name, 
-            in: className, 
-            arguments: \(className).\(signalName.swiftName).arguments
-        )
-        """)
+
+        memberDescriptors.append("""
+            .signal(SwiftGodotRuntime.ClassRegistrationDescriptor.Signal(
+                name: \(className).\(signalName.swiftName).name,
+                arguments: \(className).\(signalName.swiftName).arguments
+            ))
+            """)
     }
-    
+
     func processExportGroup(name: String, prefix: String) {
-        classInitializerPrinter("""
-        SwiftGodotRuntime._addPropertyGroup(className: className, name: "\(name)", prefix: "\(prefix)")
-        """)
+        memberDescriptors.append("""
+            .propertyGroup(SwiftGodotRuntime.ClassRegistrationDescriptor.PropertyGroup(name: "\(name)", prefix: "\(prefix)"))
+            """)
     }
-    
+
     func processExportSubgroup(name: String, prefix: String) {
-        classInitializerPrinter("""
-        SwiftGodotRuntime._addPropertySubgroup(className: className, name: "\(name)", prefix: "\(prefix)")
-        """)
+        memberDescriptors.append("""
+            .propertySubgroup(SwiftGodotRuntime.ClassRegistrationDescriptor.PropertySubgroup(name: "\(name)", prefix: "\(prefix)"))
+            """)
     }
-        
+
     func processFunction(_ funcDecl: FunctionDeclSyntax) throws {
         guard let callableAttribute = funcDecl.attributes.attribute(named: "Callable") else {
             return
@@ -96,33 +96,31 @@ class GodotMacroProcessor {
         if funcDecl.hasClassOrStaticModifier {
             generatePtrCall = true
         }
-        
+
         let funcName = funcDecl.name.text
-        
+
         let godotFuncName: String
         if try callableAttribute.callableAutoSnakeCaseArgument {
             godotFuncName = funcName.camelCaseToSnakeCase()
         } else {
             godotFuncName = funcName
         }
-        
-        let p = classInitializerPrinter
-                        
+
         let arguments = funcDecl
             .parameters
             .map { parameter in
                 let typename = parameter.type.trimmedDescription
                 return "SwiftGodotRuntime._argumentPropInfo(\(typename).self, name: \"\(parameter.internalName)\")"
             }
-            .joined(separator: ",\n")
-                
+            .joined(separator: ",\n                    ")
+
         let returnTypename: String
         if let type = funcDecl.signature.returnClause?.type {
             returnTypename = type.trimmedDescription
         } else {
             returnTypename = "Swift.Void"
         }
-        
+
         let flags: String
         if funcDecl.hasClassOrStaticModifier {
             flags = ".static"
@@ -130,28 +128,31 @@ class GodotMacroProcessor {
             flags = ".default"
         }
 
-        p("SwiftGodotRuntime._registerMethod", .parentheses) {
-            p("""
-            className: className,
-            name: "\(godotFuncName)", 
-            flags: \(flags), 
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(\(returnTypename).self),    
-            """)
-            p("arguments: ", .square, afterBlock: ",") {
-                p(arguments)
-            }
-            p(("function: \(className)._mproxy_\(funcName)") + (generatePtrCall ? "," : ""))
-            if generatePtrCall {
-                p("""
-                ptrFunction: { udata, classInstance, argsPtr, retValue in
-                    guard let argsPtr else { GD.print("Godot is not passing the arguments"); return } 
-                    \(className)._pproxy_\(funcName) (classInstance, RawArguments(args: argsPtr), retValue)
-                }
-                
-                """)
-            }
+        let ptrFunctionStr: String
+        if generatePtrCall {
+            ptrFunctionStr = """
+{ udata, classInstance, argsPtr, retValue in
+                        guard let argsPtr else { GD.print("Godot is not passing the arguments"); return }
+                        \(className)._pproxy_\(funcName)(classInstance, RawArguments(args: argsPtr), retValue)
+                    }
+"""
+        } else {
+            ptrFunctionStr = "nil"
         }
-        
+
+        memberDescriptors.append("""
+            .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+                name: "\(godotFuncName)",
+                flags: \(flags),
+                returnValue: SwiftGodotRuntime._returnValuePropInfo(\(returnTypename).self),
+                arguments: [
+                    \(arguments)
+                ],
+                function: \(className)._mproxy_\(funcName),
+                ptrFunction: \(ptrFunctionStr)
+            ))
+            """)
+
         try checkNameCollision(godotFuncName, for: DeclSyntax(funcDecl))
     }
 
@@ -237,19 +238,19 @@ class GodotMacroProcessor {
             try processSignalVariable(varDecl, prefix: previousSubgroupPrefix ?? previousGroupPrefix)
         }
     }
-    
+
     // Returns true if it used "tryCase"
     func processExportVariable (_ varDecl: VariableDeclSyntax, prefix: String?) throws {
         assert(varDecl.hasExportAttribute)
-        
+
         if varDecl.hasClassOrStaticModifier {
             throw GodotMacroError.unsupportedStaticMember
         }
-        
+
         guard let exportAttribute = varDecl.attributes.attribute(named: "Export") else {
             fatalError("`processExportVariable` called for variable without `Export` attribute")
         }
-                        
+
         // We cornered ourselves by not having named parameters for the first two arguments
         let labeledExpressionList = exportAttribute.arguments?.as(LabeledExprListSyntax.self)
 
@@ -257,7 +258,7 @@ class GodotMacroProcessor {
         // hint, and in that case, the second can be a hint
         let hintExpr = labeledExpressionList?.first?.expression.as(MemberAccessExprSyntax.self)?.declName
         let hintStrExpr = hintExpr == nil ? nil : labeledExpressionList?.dropFirst().first
-        
+
         let usageExpr = labeledExpressionList?.first { labelExpr in
             labelExpr.trimmedDescription == "usage"
         }
@@ -266,10 +267,10 @@ class GodotMacroProcessor {
             guard let ips = binding.pattern.as(IdentifierPatternSyntax.self) else {
                 throw GodotMacroError.noIdentifier(binding)
             }
-            
+
             // Determine if this property needs a setter (same logic as Export macro)
             let needsSetter = Self.bindingNeedsSetter(variableDecl: varDecl, binding: binding)
-            
+
             let varNameWithPrefix = ips.identifier.text
             let varNameWithoutPrefix = String(varNameWithPrefix.trimmingPrefix(prefix ?? ""))
             // For the case where there is no setter, set the proxySetterName to the empty string
@@ -277,59 +278,54 @@ class GodotMacroProcessor {
             let proxyGetterName = "_mproxy_get_\(varNameWithPrefix)"
             let setterName = "set_\(varNameWithoutPrefix.camelCaseToSnakeCase())"
             let getterName = "get_\(varNameWithoutPrefix.camelCaseToSnakeCase())"
-            
+
             // Do not throw for read-only properties anymore; allow registration to proceed.
             // Keep building the args list as before.
             var args: [String] = [
                 "at: \\\(className).\(varNameWithPrefix)",
                 "name: \"\(varNameWithPrefix.camelCaseToSnakeCase())\""
             ]
-            
+
             if let hint = hintExpr?.trimmedDescription {
                 args.append("userHint: .\(hint)")
             } else {
                 args.append("userHint: nil")
             }
-            
+
             if let hintStr = hintStrExpr?.trimmedDescription {
                 args.append("userHintStr: \(hintStr)")
             } else {
                 args.append("userHintStr: nil")
             }
-            
+
             if let usage = usageExpr?.expression.trimmedDescription {
                 args.append("userUsage: \(usage)")
             } else {
                 args.append("userUsage: nil")
             }
-            
-            let argsStr = args.joined(separator: ",\n")
-            
-            let p = classInitializerPrinter
-                        
-            p("SwiftGodotRuntime._registerPropertyWithGetterSetter", .parentheses) {
-                p("className: className,")
-                p("info: SwiftGodotRuntime._propInfo", .parentheses, afterBlock: ",") {
-                    p(argsStr)
-                }
-                let setterFunction = needsSetter ? "\(className).\(proxySetterName)" : "nil"
-                let setterNameArg = needsSetter ? "\"\(setterName)\"" : "StringName()"
 
-                p("""
-                getterName: "\(getterName)\",
+            let argsStr = args.joined(separator: ", ")
+
+            let setterFunction = needsSetter ? "\(className).\(proxySetterName)" : "nil"
+            let setterNameArg = needsSetter ? "\"\(setterName)\"" : "StringName()"
+
+            memberDescriptors.append("""
+            .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+                info: SwiftGodotRuntime._propInfo(\(argsStr)),
+                getterName: "\(getterName)",
                 setterName: \(setterNameArg),
                 getterFunction: \(className).\(proxyGetterName),
                 setterFunction: \(setterFunction)
-                """)
-            }
-            
+            ))
+            """)
+
             try checkNameCollision(getterName, for: DeclSyntax(varDecl))
             if needsSetter {
                 try checkNameCollision(setterName, for: DeclSyntax(varDecl))
             }
         }
     }
-        
+
     func processSignalVariable(_ varDecl: VariableDeclSyntax, prefix: String?) throws {
         if varDecl.hasClassOrStaticModifier {
             throw GodotMacroError.unsupportedStaticMember
@@ -339,7 +335,7 @@ class GodotMacroProcessor {
             guard let ips = binding.pattern.as(IdentifierPatternSyntax.self) else {
                 throw GodotMacroError.noIdentifier(binding)
             }
-            
+
             let nameWithPrefix = ips.identifier.text
             let name = String(nameWithPrefix.trimmingPrefix(prefix ?? ""))
             let godotName = name.camelCaseToSnakeCase()
@@ -347,9 +343,9 @@ class GodotMacroProcessor {
             guard let typeAnnotation = binding.typeAnnotation else {
                 throw GodotMacroError.signalMacroNoType(nameWithPrefix)
             }
-            
+
             let typeName = typeAnnotation.type.trimmedDescription
-            
+
             // Collect optional variadic names from @Signal attribute on this variable
             var namesExpr = "[]"
             if let signalAttr = varDecl.attributes.attribute(named: "Signal"), let argList = signalAttr.arguments?.as(LabeledExprListSyntax.self) {
@@ -369,53 +365,57 @@ class GodotMacroProcessor {
                 namesExpr = "[" + parts.joined(separator: ", ") + "]"
             }
 
-            classInitializerPrinter("""
-            \(typeName).register(as: \"\(godotName)\", in: className, names: \(namesExpr))
+            memberDescriptors.append("""
+            .signal(SwiftGodotRuntime.ClassRegistrationDescriptor.Signal(
+                name: "\(godotName)",
+                arguments: \(typeName).getArgumentPropInfos(\(namesExpr))
+            ))
             """)
-            
+
             try checkNameCollision(godotName, for: DeclSyntax(varDecl))
         }
     }
 
     func processType() throws -> String {
-        let p = classInitializerPrinter
-        
-        try p("private static let _initializeClass: Void = ", .curly, afterBlock: "()") {
-            p("""
-            let className = StringName("\(className)")
-            if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-                // ClassDB singleton is not available prior to `.scene` level
-                assert(ClassDB.classExists(class: className))
-            }            
-            """)
-            var previousGroupPrefix: String? = nil
-            var previousSubgroupPrefix: String? = nil
-            for member in classDecl.memberBlock.members.enumerated() {
-                let decl = member.element.decl
-                let macroExpansion = MacroExpansionDeclSyntax(decl)
-                
-                if let name = macroExpansion?.exportGroupName {
-                    previousGroupPrefix = macroExpansion?.exportGroupPrefix ?? ""
-                    processExportGroup(name: name, prefix: previousGroupPrefix ?? "")
-                } else if let name = macroExpansion?.exportSubgroupName {
-                    previousSubgroupPrefix = macroExpansion?.exportSubgroupPrefix ?? ""
-                    processExportSubgroup(name: name, prefix: previousSubgroupPrefix ?? "")
-                } else if let funcDecl = FunctionDeclSyntax(decl) {
-                    try processFunction (funcDecl)
-                    processRpcFunction(funcDecl)
-                } else if let varDecl = VariableDeclSyntax(decl) {
-                    try processVariable(
-                        varDecl,
-                        previousGroupPrefix: previousGroupPrefix,
-                        previousSubgroupPrefix: previousSubgroupPrefix
-                    )
-                } else if let macroExpansion {
-                    try classInitSignals(macroExpansion)
-                }
+        var previousGroupPrefix: String? = nil
+        var previousSubgroupPrefix: String? = nil
+        for member in classDecl.memberBlock.members.enumerated() {
+            let decl = member.element.decl
+            let macroExpansion = MacroExpansionDeclSyntax(decl)
+
+            if let name = macroExpansion?.exportGroupName {
+                previousGroupPrefix = macroExpansion?.exportGroupPrefix ?? ""
+                processExportGroup(name: name, prefix: previousGroupPrefix ?? "")
+            } else if let name = macroExpansion?.exportSubgroupName {
+                previousSubgroupPrefix = macroExpansion?.exportSubgroupPrefix ?? ""
+                processExportSubgroup(name: name, prefix: previousSubgroupPrefix ?? "")
+            } else if let funcDecl = FunctionDeclSyntax(decl) {
+                try processFunction (funcDecl)
+                processRpcFunction(funcDecl)
+            } else if let varDecl = VariableDeclSyntax(decl) {
+                try processVariable(
+                    varDecl,
+                    previousGroupPrefix: previousGroupPrefix,
+                    previousSubgroupPrefix: previousSubgroupPrefix
+                )
+            } else if let macroExpansion {
+                try classInitSignals(macroExpansion)
             }
         }
-        
-        return classInitializerPrinter.result
+
+        let membersStr: String
+        if memberDescriptors.isEmpty {
+            membersStr = "[]"
+        } else {
+            membersStr = "[\n            " + memberDescriptors.joined(separator: ",\n            ") + "\n        ]"
+        }
+
+        return """
+SwiftGodotRuntime.ClassRegistrationDescriptor(
+            className: StringName("\(className)"),
+            members: \(membersStr)
+        )
+"""
     }
 
     /// Determines whether a binding is settable based on its syntax.
@@ -502,7 +502,7 @@ public struct GodotMacro: MemberMacro {
         
         let processor = GodotMacroProcessor(classDecl: classDecl)
         do {
-            let classInit = try processor.processType()
+            let classDescriptorBody = try processor.processType()
 
             let isFinal = classDecl.modifiers
                 .map(\.name.tokenKind)
@@ -510,16 +510,15 @@ public struct GodotMacro: MemberMacro {
 
             let accessControlLevel = isFinal ? "public" : "open"
 
-            let classInitProperty = DeclSyntax(
+            let classDescriptorProperty = DeclSyntax(
             """
-            override \(raw: accessControlLevel) class var classInitializer: Void {
-                let _ = super.classInitializer
-                return _initializeClass
+            override \(raw: accessControlLevel) class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+                \(raw: classDescriptorBody)
             }
             """
             )
-            
-            var decls = [classInitProperty, DeclSyntax(stringLiteral: classInit)]
+
+            var decls = [classDescriptorProperty]
 
             // Now look for overrides of Godot functions
             let functions = classDecl.memberBlock.members

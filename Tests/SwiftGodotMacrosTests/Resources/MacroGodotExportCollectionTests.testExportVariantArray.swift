@@ -22,30 +22,18 @@ class SomeNode: Node {
         return SwiftGodotRuntime._invokeGetter(object.someArray)
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("SomeNode"),
+                members: [
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \SomeNode.someArray, name: "some_array", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_some_array",
+        setterName: "set_some_array",
+        getterFunction: SomeNode._mproxy_get_someArray,
+        setterFunction: SomeNode._mproxy_set_someArray
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("SomeNode")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \SomeNode.someArray,
-                name: "some_array",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_some_array",
-            setterName: "set_some_array",
-            getterFunction: SomeNode._mproxy_get_someArray,
-            setterFunction: SomeNode._mproxy_set_someArray
-        )
-    }()
 }

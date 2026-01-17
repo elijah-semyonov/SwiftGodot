@@ -1,17 +1,11 @@
 final class MyData: Resource {
 
-    override public class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override public class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("MyData"),
+                members: []
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("MyData")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-    }()
 }
 final class MyClass: Node {
     var data: MyData = .init()
@@ -37,30 +31,18 @@ final class MyClass: Node {
         return SwiftGodotRuntime._invokeGetter(object.data)
     }
 
-    override public class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override public class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("MyClass"),
+                members: [
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \MyClass.data, name: "data", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_data",
+        setterName: "set_data",
+        getterFunction: MyClass._mproxy_get_data,
+        setterFunction: MyClass._mproxy_set_data
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("MyClass")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \MyClass.data,
-                name: "data",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_data",
-            setterName: "set_data",
-            getterFunction: MyClass._mproxy_get_data,
-            setterFunction: MyClass._mproxy_set_data
-        )
-    }()
 }

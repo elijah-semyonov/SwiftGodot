@@ -84,88 +84,75 @@ class TestClass: Node {
 
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("TestClass"),
+                members: [
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "no_need_to_snake_case_functions_now",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+
+        ],
+        function: TestClass._mproxy_noNeedToSnakeCaseFunctionsNow,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            TestClass._pproxy_noNeedToSnakeCaseFunctionsNow(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "or_is_there",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+
+        ],
+        function: TestClass._mproxy_or_is_there,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            TestClass._pproxy_or_is_there(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "thatIsHideous",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+
+        ],
+        function: TestClass._mproxy_thatIsHideous,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            TestClass._pproxy_thatIsHideous(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "defaultIsLegacyCompatible",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
+        arguments: [
+
+        ],
+        function: TestClass._mproxy_defaultIsLegacyCompatible,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            TestClass._pproxy_defaultIsLegacyCompatible(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("TestClass")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "no_need_to_snake_case_functions_now",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-
-            ],
-            function: TestClass._mproxy_noNeedToSnakeCaseFunctionsNow,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                TestClass._pproxy_noNeedToSnakeCaseFunctionsNow (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "or_is_there",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-
-            ],
-            function: TestClass._mproxy_or_is_there,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                TestClass._pproxy_or_is_there (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "thatIsHideous",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-
-            ],
-            function: TestClass._mproxy_thatIsHideous,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                TestClass._pproxy_thatIsHideous (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "defaultIsLegacyCompatible",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Swift.Void.self),
-            arguments: [
-
-            ],
-            function: TestClass._mproxy_defaultIsLegacyCompatible,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                TestClass._pproxy_defaultIsLegacyCompatible (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-    }()
 }

@@ -21,6 +21,11 @@
 public class SignalProxy: Object {
     public static var proxyName = StringName("proxy")
 
+    /// SignalProxy uses manual class registration via `initClass()`, so this returns an empty descriptor.
+    override public class var classRegistrationDescriptor: ClassRegistrationDescriptor {
+        ClassRegistrationDescriptor(className: StringName("SignalProxy"), members: [])
+    }
+
     public static func initClass() {
         let name = StringName("SignalProxy")
         if gi.classdb_get_class_tag(&name.content) == nil {

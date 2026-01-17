@@ -44,45 +44,26 @@ class Car: Node {
         return SwiftGodotRuntime._invokeGetter(object.year)
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("Car"),
+                members: [
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Car.vin, name: "vin", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_vin",
+        setterName: "set_vin",
+        getterFunction: Car._mproxy_get_vin,
+        setterFunction: Car._mproxy_set_vin
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Car.year, name: "year", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_year",
+        setterName: "set_year",
+        getterFunction: Car._mproxy_get_year,
+        setterFunction: Car._mproxy_set_year
+                    )),
+                .propertyGroup(SwiftGodotRuntime.ClassRegistrationDescriptor.PropertyGroup(name: "Pointless", prefix: ""))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("Car")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Car.vin,
-                name: "vin",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_vin",
-            setterName: "set_vin",
-            getterFunction: Car._mproxy_get_vin,
-            setterFunction: Car._mproxy_set_vin
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Car.year,
-                name: "year",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_year",
-            setterName: "set_year",
-            getterFunction: Car._mproxy_get_year,
-            setterFunction: Car._mproxy_set_year
-        )
-        SwiftGodotRuntime._addPropertyGroup(className: className, name: "Pointless", prefix: "")
-    }()
 }

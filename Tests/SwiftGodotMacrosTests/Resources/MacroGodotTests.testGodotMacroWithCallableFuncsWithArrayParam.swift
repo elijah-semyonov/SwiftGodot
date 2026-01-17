@@ -35,34 +35,27 @@ class MultiplierNode: Node {
         }
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("MultiplierNode"),
+                members: [
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "multiply",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Int.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo([Int].self, name: "integers")
+        ],
+        function: MultiplierNode._mproxy_multiply,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            MultiplierNode._pproxy_multiply(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("MultiplierNode")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "multiply",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Int.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo([Int].self, name: "integers")
-            ],
-            function: MultiplierNode._mproxy_multiply,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                MultiplierNode._pproxy_multiply (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-    }()
 }

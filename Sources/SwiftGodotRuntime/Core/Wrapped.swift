@@ -328,7 +328,9 @@ open class Wrapped: Equatable, Identifiable, Hashable {
         fatalError("Subclasses of Wrapped must override godotClassName")
     }
     
-    open class var classInitializer: Void { () }
+    open class var classRegistrationDescriptor: ClassRegistrationDescriptor {
+        fatalError("Subclasses registered with Godot must override classRegistrationDescriptor. Use the @Godot macro to generate this automatically.")
+    }
     
     /// Indicates during which engine initialization stage this class is registered. `.scene` is default. This value is taken into consideration when using `#initSwiftExtension(cdecl:types:)`  or `EntryPointGeneratorPlugin`.
     open class var classInitializationLevel: ExtensionInitializationLevel { .scene }
@@ -443,10 +445,14 @@ func register<T: Object>(type name: StringName, parent: StringName, type: T.Type
     
     gi.classdb_register_extension_class(extensionInterface.getLibrary(), &nameContent, &parent.content, &info)
     if var extensionInterface {
+        let performRegistration = {
+            type.classRegistrationDescriptor.register()
+        }
+
         if extensionInterface.classDBReady {
-            _ = type.classInitializer
+            performRegistration()
         } else {
-            extensionInterface.pendingInitializers.append({ _ = type.classInitializer })
+            extensionInterface.pendingInitializers.append(performRegistration)
         }
     }
 }

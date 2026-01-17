@@ -176,131 +176,70 @@ class Garage: Node {
         return SwiftGodotRuntime._invokeGetter(object.insuranceProvidersAccepted)
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("Garage"),
+                members: [
+                .propertyGroup(SwiftGodotRuntime.ClassRegistrationDescriptor.PropertyGroup(name: "Front Page", prefix: "")),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Garage.name, name: "name", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_name",
+        setterName: "set_name",
+        getterFunction: Garage._mproxy_get_name,
+        setterFunction: Garage._mproxy_set_name
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Garage.rating, name: "rating", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_rating",
+        setterName: "set_rating",
+        getterFunction: Garage._mproxy_get_rating,
+        setterFunction: Garage._mproxy_set_rating
+                    )),
+                .propertyGroup(SwiftGodotRuntime.ClassRegistrationDescriptor.PropertyGroup(name: "More Details", prefix: "")),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Garage.reviews, name: "reviews", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_reviews",
+        setterName: "set_reviews",
+        getterFunction: Garage._mproxy_get_reviews,
+        setterFunction: Garage._mproxy_set_reviews
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Garage.checkIns, name: "check_ins", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_check_ins",
+        setterName: "set_check_ins",
+        getterFunction: Garage._mproxy_get_checkIns,
+        setterFunction: Garage._mproxy_set_checkIns
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Garage.address, name: "address", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_address",
+        setterName: "set_address",
+        getterFunction: Garage._mproxy_get_address,
+        setterFunction: Garage._mproxy_set_address
+                    )),
+                .propertyGroup(SwiftGodotRuntime.ClassRegistrationDescriptor.PropertyGroup(name: "Hours and Insurance", prefix: "")),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Garage.daysOfOperation, name: "days_of_operation", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_days_of_operation",
+        setterName: "set_days_of_operation",
+        getterFunction: Garage._mproxy_get_daysOfOperation,
+        setterFunction: Garage._mproxy_set_daysOfOperation
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Garage.hours, name: "hours", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_hours",
+        setterName: "set_hours",
+        getterFunction: Garage._mproxy_get_hours,
+        setterFunction: Garage._mproxy_set_hours
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Garage.insuranceProvidersAccepted, name: "insurance_providers_accepted", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_insurance_providers_accepted",
+        setterName: "set_insurance_providers_accepted",
+        getterFunction: Garage._mproxy_get_insuranceProvidersAccepted,
+        setterFunction: Garage._mproxy_set_insuranceProvidersAccepted
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("Garage")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._addPropertyGroup(className: className, name: "Front Page", prefix: "")
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Garage.name,
-                name: "name",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_name",
-            setterName: "set_name",
-            getterFunction: Garage._mproxy_get_name,
-            setterFunction: Garage._mproxy_set_name
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Garage.rating,
-                name: "rating",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_rating",
-            setterName: "set_rating",
-            getterFunction: Garage._mproxy_get_rating,
-            setterFunction: Garage._mproxy_set_rating
-        )
-        SwiftGodotRuntime._addPropertyGroup(className: className, name: "More Details", prefix: "")
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Garage.reviews,
-                name: "reviews",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_reviews",
-            setterName: "set_reviews",
-            getterFunction: Garage._mproxy_get_reviews,
-            setterFunction: Garage._mproxy_set_reviews
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Garage.checkIns,
-                name: "check_ins",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_check_ins",
-            setterName: "set_check_ins",
-            getterFunction: Garage._mproxy_get_checkIns,
-            setterFunction: Garage._mproxy_set_checkIns
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Garage.address,
-                name: "address",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_address",
-            setterName: "set_address",
-            getterFunction: Garage._mproxy_get_address,
-            setterFunction: Garage._mproxy_set_address
-        )
-        SwiftGodotRuntime._addPropertyGroup(className: className, name: "Hours and Insurance", prefix: "")
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Garage.daysOfOperation,
-                name: "days_of_operation",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_days_of_operation",
-            setterName: "set_days_of_operation",
-            getterFunction: Garage._mproxy_get_daysOfOperation,
-            setterFunction: Garage._mproxy_set_daysOfOperation
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Garage.hours,
-                name: "hours",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_hours",
-            setterName: "set_hours",
-            getterFunction: Garage._mproxy_get_hours,
-            setterFunction: Garage._mproxy_set_hours
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Garage.insuranceProvidersAccepted,
-                name: "insurance_providers_accepted",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_insurance_providers_accepted",
-            setterName: "set_insurance_providers_accepted",
-            getterFunction: Garage._mproxy_get_insuranceProvidersAccepted,
-            setterFunction: Garage._mproxy_set_insuranceProvidersAccepted
-        )
-    }()
 }

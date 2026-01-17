@@ -22,30 +22,18 @@ class Hi: Node {
         return SwiftGodotRuntime._invokeGetter(object.goodName)
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("Hi"),
+                members: [
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \Hi.goodName, name: "good_name", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_good_name",
+        setterName: "set_good_name",
+        getterFunction: Hi._mproxy_get_goodName,
+        setterFunction: Hi._mproxy_set_goodName
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("Hi")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \Hi.goodName,
-                name: "good_name",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_good_name",
-            setterName: "set_good_name",
-            getterFunction: Hi._mproxy_get_goodName,
-            setterFunction: Hi._mproxy_set_goodName
-        )
-    }()
 }

@@ -4,36 +4,27 @@ class Hi: Node {
     static let differentInit = SignalWithNoArguments("different_init")
     static let differentInit2 = SignalWithNoArguments("different_init2")
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("Hi"),
+                members: [
+                .signal(SwiftGodotRuntime.ClassRegistrationDescriptor.Signal(
+        name: Hi.pickedUpItem.name,
+        arguments: Hi.pickedUpItem.arguments
+                    )),
+                .signal(SwiftGodotRuntime.ClassRegistrationDescriptor.Signal(
+        name: Hi.scored.name,
+        arguments: Hi.scored.arguments
+                    )),
+                .signal(SwiftGodotRuntime.ClassRegistrationDescriptor.Signal(
+        name: Hi.differentInit.name,
+        arguments: Hi.differentInit.arguments
+                    )),
+                .signal(SwiftGodotRuntime.ClassRegistrationDescriptor.Signal(
+        name: Hi.differentInit2.name,
+        arguments: Hi.differentInit2.arguments
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("Hi")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerSignal(
-            Hi.pickedUpItem.name,
-            in: className,
-            arguments: Hi.pickedUpItem.arguments
-        )
-        SwiftGodotRuntime._registerSignal(
-            Hi.scored.name,
-            in: className,
-            arguments: Hi.scored.arguments
-        )
-        SwiftGodotRuntime._registerSignal(
-            Hi.differentInit.name,
-            in: className,
-            arguments: Hi.differentInit.arguments
-        )
-        SwiftGodotRuntime._registerSignal(
-            Hi.differentInit2.name,
-            in: className,
-            arguments: Hi.differentInit2.arguments
-        )
-    }()
 }

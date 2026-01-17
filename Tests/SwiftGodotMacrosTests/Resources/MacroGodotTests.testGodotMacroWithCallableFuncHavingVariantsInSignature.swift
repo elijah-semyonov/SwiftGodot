@@ -35,34 +35,27 @@ private class TestNode: Node {
         }
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("TestNode"),
+                members: [
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "foo",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Variant?.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo(Variant?.self, name: "variant")
+        ],
+        function: TestNode._mproxy_foo,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            TestNode._pproxy_foo(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("TestNode")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "foo",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Variant?.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo(Variant?.self, name: "variant")
-            ],
-            function: TestNode._mproxy_foo,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                TestNode._pproxy_foo (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-    }()
 }

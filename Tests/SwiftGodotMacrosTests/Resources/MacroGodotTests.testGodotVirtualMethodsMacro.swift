@@ -1,18 +1,12 @@
 class Hi: Control {
     override func _hasPoint(_ point: Vector2) -> Bool { false }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("Hi"),
+                members: []
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("Hi")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-    }()
 
     override open class func implementedOverrides () -> [StringName] {
         return super.implementedOverrides () + [

@@ -105,73 +105,62 @@ class MathHelper: Node {
         }
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("MathHelper"),
+                members: [
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "multiply",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Int.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo(Int.self, name: "a"),
+                        SwiftGodotRuntime._argumentPropInfo(Int.self, name: "b")
+        ],
+        function: MathHelper._mproxy_multiply,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            MathHelper._pproxy_multiply(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "divide",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Float.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo(Float.self, name: "a"),
+                        SwiftGodotRuntime._argumentPropInfo(Float.self, name: "b")
+        ],
+        function: MathHelper._mproxy_divide,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            MathHelper._pproxy_divide(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "areBothTrue",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(Bool.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo(Bool.self, name: "a"),
+                        SwiftGodotRuntime._argumentPropInfo(Bool.self, name: "b")
+        ],
+        function: MathHelper._mproxy_areBothTrue,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            MathHelper._pproxy_areBothTrue(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("MathHelper")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "multiply",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Int.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo(Int.self, name: "a"),
-                SwiftGodotRuntime._argumentPropInfo(Int.self, name: "b")
-            ],
-            function: MathHelper._mproxy_multiply,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                MathHelper._pproxy_multiply (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "divide",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Float.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo(Float.self, name: "a"),
-                SwiftGodotRuntime._argumentPropInfo(Float.self, name: "b")
-            ],
-            function: MathHelper._mproxy_divide,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                MathHelper._pproxy_divide (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "areBothTrue",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(Bool.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo(Bool.self, name: "a"),
-                SwiftGodotRuntime._argumentPropInfo(Bool.self, name: "b")
-            ],
-            function: MathHelper._mproxy_areBothTrue,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                MathHelper._pproxy_areBothTrue (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-    }()
 }

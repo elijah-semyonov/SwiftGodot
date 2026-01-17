@@ -45,44 +45,25 @@ class ArrayTest: Node {
        return SwiftGodotRuntime._invokeGetter(object.lastNames)
    }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("ArrayTest"),
+                members: [
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \ArrayTest.firstNames, name: "first_names", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_first_names",
+        setterName: "set_first_names",
+        getterFunction: ArrayTest._mproxy_get_firstNames,
+        setterFunction: ArrayTest._mproxy_set_firstNames
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \ArrayTest.lastNames, name: "last_names", userHint: nil, userHintStr: nil, userUsage: nil),
+        getterName: "get_last_names",
+        setterName: "set_last_names",
+        getterFunction: ArrayTest._mproxy_get_lastNames,
+        setterFunction: ArrayTest._mproxy_set_lastNames
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("ArrayTest")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \ArrayTest.firstNames,
-                name: "first_names",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_first_names",
-            setterName: "set_first_names",
-            getterFunction: ArrayTest._mproxy_get_firstNames,
-            setterFunction: ArrayTest._mproxy_set_firstNames
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \ArrayTest.lastNames,
-                name: "last_names",
-                userHint: nil,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_last_names",
-            setterName: "set_last_names",
-            getterFunction: ArrayTest._mproxy_get_lastNames,
-            setterFunction: ArrayTest._mproxy_set_lastNames
-        )
-    }()
 }

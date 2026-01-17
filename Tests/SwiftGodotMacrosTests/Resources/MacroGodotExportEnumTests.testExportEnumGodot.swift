@@ -50,44 +50,25 @@ class SomeNode: Node {
         return SwiftGodotRuntime._invokeGetter(object.demo64)
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("SomeNode"),
+                members: [
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \SomeNode.demo, name: "demo", userHint: .enum, userHintStr: nil, userUsage: nil),
+        getterName: "get_demo",
+        setterName: "set_demo",
+        getterFunction: SomeNode._mproxy_get_demo,
+        setterFunction: SomeNode._mproxy_set_demo
+                    )),
+                .property(SwiftGodotRuntime.ClassRegistrationDescriptor.Property(
+        info: SwiftGodotRuntime._propInfo(at: \SomeNode.demo64, name: "demo64", userHint: .enum, userHintStr: nil, userUsage: nil),
+        getterName: "get_demo64",
+        setterName: "set_demo64",
+        getterFunction: SomeNode._mproxy_get_demo64,
+        setterFunction: SomeNode._mproxy_set_demo64
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("SomeNode")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \SomeNode.demo,
-                name: "demo",
-                userHint: .enum,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_demo",
-            setterName: "set_demo",
-            getterFunction: SomeNode._mproxy_get_demo,
-            setterFunction: SomeNode._mproxy_set_demo
-        )
-        SwiftGodotRuntime._registerPropertyWithGetterSetter(
-            className: className,
-            info: SwiftGodotRuntime._propInfo(
-                at: \SomeNode.demo64,
-                name: "demo64",
-                userHint: .enum,
-                userHintStr: nil,
-                userUsage: nil
-            ),
-            getterName: "get_demo64",
-            setterName: "set_demo64",
-            getterFunction: SomeNode._mproxy_get_demo64,
-            setterFunction: SomeNode._mproxy_set_demo64
-        )
-    }()
 }

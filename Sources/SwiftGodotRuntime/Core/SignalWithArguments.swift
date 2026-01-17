@@ -30,7 +30,7 @@ public struct SignalWithArguments<each T: _GodotBridgeable> {
     }
 
     /// Expand a list of argument types into a list of PropInfo objects
-    static func getArgumentPropInfos(_ names: [String]) -> [PropInfo] {
+    public static func getArgumentPropInfos(_ names: [String]) -> [PropInfo] {
         var arguments = [PropInfo]()
         var i = 1
         let nameCount = names.count

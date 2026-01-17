@@ -40,35 +40,31 @@ class DebugThing: SwiftGodot.Object {
         }
     }
 
-    override open class var classInitializer: Void {
-        let _ = super.classInitializer
-        return _initializeClass
+    override open class var classRegistrationDescriptor: SwiftGodotRuntime.ClassRegistrationDescriptor {
+        SwiftGodotRuntime.ClassRegistrationDescriptor(
+                className: StringName("DebugThing"),
+                members: [
+                .signal(SwiftGodotRuntime.ClassRegistrationDescriptor.Signal(
+        name: "lives_changed",
+        arguments: SignalWithArguments<Swift.Int>.getArgumentPropInfos([])
+                    )),
+                .method(SwiftGodotRuntime.ClassRegistrationDescriptor.Method(
+        name: "do_thing",
+        flags: .default,
+        returnValue: SwiftGodotRuntime._returnValuePropInfo(SwiftGodot.Variant?.self),
+        arguments: [
+            SwiftGodotRuntime._argumentPropInfo(SwiftGodot.Variant?.self, name: "value")
+        ],
+        function: DebugThing._mproxy_do_thing,
+        ptrFunction: { udata, classInstance, argsPtr, retValue in
+                            guard let argsPtr else {
+                                                GD.print("Godot is not passing the arguments");
+                                                return
+                                            }
+                            DebugThing._pproxy_do_thing(classInstance, RawArguments(args: argsPtr), retValue)
+                        }
+                    ))
+            ]
+            )
     }
-
-    private static let _initializeClass: Void = {
-        let className = StringName("DebugThing")
-        if classInitializationLevel.rawValue >= ExtensionInitializationLevel.scene.rawValue {
-            // ClassDB singleton is not available prior to `.scene` level
-            assert(ClassDB.classExists(class: className))
-        }
-        SignalWithArguments<Swift.Int>.register(as: "lives_changed", in: className, names: [])
-        SwiftGodotRuntime._registerMethod(
-            className: className,
-            name: "do_thing",
-            flags: .default,
-            returnValue: SwiftGodotRuntime._returnValuePropInfo(SwiftGodot.Variant?.self),
-            arguments: [
-                SwiftGodotRuntime._argumentPropInfo(SwiftGodot.Variant?.self, name: "value")
-            ],
-            function: DebugThing._mproxy_do_thing,
-            ptrFunction: { udata, classInstance, argsPtr, retValue in
-                guard let argsPtr else {
-                    GD.print("Godot is not passing the arguments");
-                    return
-                }
-                DebugThing._pproxy_do_thing (classInstance, RawArguments(args: argsPtr), retValue)
-            }
-
-        )
-    }()
 }
